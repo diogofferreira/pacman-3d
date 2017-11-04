@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+	
+<title>Pacman 3D by Apollo</title>
+
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+
+<!--
+
+The simple vertex and fragment shaders.
+
+Using a vertex coordinate buffer and a vertex colour buffer.
+
+Passing the Model-View Matrix and the Projection Matrix. 
+
+-->
+
+<script id="shader-vs" type="x-shader/x-vertex">
+	
+    attribute vec3 aVertexPosition;
+
+    attribute vec3 aVertexColor;
+    
+    uniform mat4 uMVMatrix;
+
+    uniform mat4 uPMatrix;
+
+    varying vec4 vertexColor;
+    
+    void main(void) {
+		
+		// To allow seeing the points drawn
+		
+		gl_PointSize = 5.0;
+		
+		// Just converting the (x,y,z) vertices to Homogeneous Coord.
+		
+		// And multiplying by the Projection and the Model-View matrix
+		
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        
+        // Converting the RGB color value to RGBA
+        
+        vertexColor = vec4(aVertexColor, 1.0);
+    }
+</script>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+
+	precision mediump float;
+	
+	varying vec4 vertexColor;
+	
+	void main(void) {
+		
+		// Using the passed vertex color
+		
+		gl_FragColor = vertexColor;
+	}
+
+</script>
+
+<!-- The JS files -->
+
+<!-- Some useful functions for browser compatibility -->
+
+<script type="text/javascript" src="webgl-utils.js"></script>
+
+<!-- Handling vectors and matrices -->
+
+<script type="text/javascript" src="maths.js"></script>
+
+<!-- Processing triangle mesh models -->
+
+<script type="text/javascript" src="models.js"></script>
+
+<!-- WebGL code -->
+
+<script type="text/javascript" src="initShaders.js"></script>
+
+<script type="text/javascript" src="Pacman-3D.js"></script>
+
+</head>
+
+<body onload="runWebGL();">
+
+	<div style="text-align: center">
+		
+		<p>Pacman 3D powered by Apollo Team</p>
+		
+		<canvas id="my-canvas" width="800" height="800"></canvas>		
+				
+	</div>
+
+</body>
+
+</html>
