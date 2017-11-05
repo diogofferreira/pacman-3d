@@ -11,6 +11,11 @@ var triangleVertexPositionBuffer = null;
 	
 var triangleVertexColorBuffer = null;
 
+var floorVertexPositionBuffer = null;
+	
+var floorVertexColorBuffer = null;
+
+
 // The local transformation parameters
 
 // The translation vector
@@ -229,6 +234,36 @@ var colors = [
 		 1.00,  0.00,  0.00,			 			 
 ];
 
+var floor = [
+		
+		-50.00,  -1.00, 50.00,
+
+		 50.00,  -1.00, 50.00,
+
+		-50.00,  -1.00, -50.00,
+
+	     50.00,  -1.00, 50.00,
+
+		 50.00,  -1.00, -50.00,
+
+		-50.00,  -1.00, -50.00,
+];
+
+var floorColors = [
+		 
+		 0.00,  0.00,  1.00,
+		 
+		 0.00,  0.00,  1.00,
+		 
+		 0.00,  0.00,  1.00,	
+
+		 0.00,  0.00,  1.00,
+		 
+		 0.00,  0.00,  1.00,
+		 
+		 0.00,  0.00,  1.00,	
+];
+
 //----------------------------------------------------------------------------
 //
 // The WebGL code
@@ -270,7 +305,37 @@ function initBuffers() {
 	gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 
 			triangleVertexColorBuffer.itemSize, 
 			gl.FLOAT, false, 0, 0);
+}
 
+function initFloorBuffer() {
+	
+	// Coordinates
+		
+	floorVertexPositionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexPositionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(floor), gl.STATIC_DRAW);
+	floorVertexPositionBuffer.itemSize = 3;
+	floorVertexPositionBuffer.numItems = floor.length / 3;			
+
+	// Associating to the vertex shader
+	
+	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 
+			floorVertexPositionBuffer.itemSize, 
+			gl.FLOAT, false, 0, 0);
+
+	// Colors
+		
+	floorVertexColorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexColorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(floorColors), gl.STATIC_DRAW);
+	floorVertexColorBuffer.itemSize = 3;
+	floorVertexColorBuffer.numItems = floorColors.length / 3;			
+
+	// Associating to the vertex shader
+	
+	gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 
+			floorVertexColorBuffer.itemSize, 
+			gl.FLOAT, false, 0, 0);
 }
 
 //----------------------------------------------------------------------------
@@ -282,6 +347,7 @@ function drawModel( angleXX, angleYY, angleZZ,
 					tx, ty, tz,
 					mvMatrix,
 					primitiveType ) {
+
 
     // Pay attention to transformation order !!
     
@@ -303,8 +369,10 @@ function drawModel( angleXX, angleYY, angleZZ,
 	
 	// Drawing the contents of the vertex buffer
 	
-	gl.drawArrays(primitiveType, 0, triangleVertexPositionBuffer.numItems); 
 	
+	gl.drawArrays(primitiveType, 0, triangleVertexPositionBuffer.numItems); 
+
+
 }
 
 //----------------------------------------------------------------------------
@@ -334,9 +402,19 @@ function drawScene() {
 	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
 	
 	gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
-		
+	
+	// Draw floor
+
+	initFloorBuffer();
+	
+	gl.drawArrays(primitiveType, 0, floorVertexPositionBuffer.numItems);
+	
+	initBuffers();
+
 	mvMatrix = translationMatrix( 0, 0, globalTz );
 	
+	angleXX = 20;
+
 	// Instantianting the current model
 		
 	drawModel( angleXX, angleYY, angleZZ, 
@@ -344,6 +422,7 @@ function drawScene() {
 	           tx, ty, tz,
 	           mvMatrix,
 	           primitiveType );
+
 }
 
 // Timer
