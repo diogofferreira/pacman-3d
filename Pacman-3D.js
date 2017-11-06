@@ -42,7 +42,6 @@ var sy = 0.5;
 
 var sz = 0.5;
 
-
 // For storing the vertices defining the triangles
 
 var vertices = [
@@ -236,17 +235,17 @@ var colors = [
 
 var floor = [
 		
-		-50.00,  -1.00, 50.00,
+		-50.00,  -2.00, 50.00,
 
-		 50.00,  -1.00, 50.00,
+		 50.00,  -2.00, 50.00,
 
-		-50.00,  -1.00, -50.00,
+		-50.00,  -2.00, -50.00,
 
-	     50.00,  -1.00, 50.00,
+	     50.00,  -2.00, 50.00,
 
-		 50.00,  -1.00, -50.00,
+		 50.00,  -2.00, -50.00,
 
-		-50.00,  -1.00, -50.00,
+		-50.00,  -2.00, -50.00,
 ];
 
 var floorColors = [
@@ -276,7 +275,7 @@ var floorColors = [
 
 // Handling the Vertex and the Color Buffers
 
-function initBuffers() {	
+function initPacmanBuffer() {	
 	
 	// Coordinates
 		
@@ -346,7 +345,8 @@ function drawModel( angleXX, angleYY, angleZZ,
 					sx, sy, sz,
 					tx, ty, tz,
 					mvMatrix,
-					primitiveType ) {
+					primitiveType,
+					buffer ) {
 
 
     // Pay attention to transformation order !!
@@ -368,11 +368,8 @@ function drawModel( angleXX, angleYY, angleZZ,
 	gl.uniformMatrix4fv(mvUniform, false, new Float32Array(flatten(mvMatrix)));
 	
 	// Drawing the contents of the vertex buffer
-	
-	
-	gl.drawArrays(primitiveType, 0, triangleVertexPositionBuffer.numItems); 
 
-
+	gl.drawArrays(primitiveType, 0, buffer.numItems);
 }
 
 //----------------------------------------------------------------------------
@@ -381,17 +378,22 @@ function drawModel( angleXX, angleYY, angleZZ,
 
 function drawScene() {
 	
+	drawFloor();
+
+	drawPacman();
+}
+
+function drawPacman() {
+
+	initPacmanBuffer();
+	
 	var pMatrix;
 	
 	var mvMatrix = mat4();
-	
-	// Clearing the frame-buffer and the depth-buffer
-	
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
+		
 	// Computing the perspective matrix
 	
-	pMatrix = perspective( 45, 1, 0.05, 15 );
+	pMatrix = perspective( 45, 1, 0.05, 50 );
 	
 	// Global transformation (Fix POV)
 	
@@ -402,14 +404,6 @@ function drawScene() {
 	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
 	
 	gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
-	
-	// Draw floor
-
-	initFloorBuffer();
-	
-	gl.drawArrays(primitiveType, 0, floorVertexPositionBuffer.numItems);
-	
-	initBuffers();
 
 	mvMatrix = translationMatrix( 0, 0, globalTz );
 	
@@ -421,8 +415,46 @@ function drawScene() {
 	           sx, sy, sz,
 	           tx, ty, tz,
 	           mvMatrix,
-	           primitiveType );
+	           primitiveType,
+	           triangleVertexPositionBuffer );
 
+}
+
+
+function drawFloor() {
+
+	initFloorBuffer();
+	
+	var pMatrix;
+	
+	var mvMatrix = mat4();
+		
+	// Computing the perspective matrix
+	
+	pMatrix = perspective( 45, 1, 0.05, 50 );
+	
+	// Global transformation (Fix POV)
+	
+	globalTz = -10.0;
+
+	// Passing the Projection Matrix to apply the current projection
+	
+	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+	
+	gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
+
+	mvMatrix = translationMatrix( 0, 0, globalTz );
+	
+	angleXX = 20;
+
+	// Instantianting the current model
+		
+	drawModel( angleXX, angleYY, angleZZ, 
+	           sx, sy, sz,
+	           tx, ty, tz,
+	           mvMatrix,
+	           primitiveType,
+	           floorVertexPositionBuffer );
 }
 
 // Timer
@@ -525,18 +557,18 @@ function runWebGL() {
 	
 	setEventListeners();
 	
-	initBuffers();
+	//initPacmanBuffer();
 
 	// Transform cube into sphere
 
 	centroidRefinement( vertices, colors, 6 );
     
-    initBuffers();
+    //initPacmanBuffer();
 
  	moveToSphericalSurface( vertices );
     
-    initBuffers();
-	
+    //initFloorBuffer();
+    //initPacmanBuffer();
 	drawScene();
 
 	//tick();   
