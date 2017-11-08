@@ -432,7 +432,7 @@ function drawFloor() {
 	// Computing the perspective matrix
 	
 	pMatrix = perspective( 45, 1, 0.05, 50 );
-	
+
 	// Global transformation (Fix POV)
 	
 	globalTz = -10.0;
@@ -470,6 +470,32 @@ function tick() {
 
 function setEventListeners(){
 
+	var moving = false;
+	var xPos = 0;
+
+	// Handle yys rotation with mouse movement
+	document.addEventListener("mousedown", function(event) {
+		xPos = event.pageX;
+		moving = true;
+	});
+
+	document.addEventListener('mousemove', function(event){ 
+		if(moving){
+			angleYY += (xPos - event.pageX) * 0.05;
+			drawScene(); 
+		}
+	});
+
+	document.addEventListener('mouseup', function(event){ 
+	  	moving = false; 
+	});
+
+	// Handle zoom with mouse scroll
+	document.addEventListener('mousewheel',function(event){
+		tz += event.deltaY > 0 ? 1 : -1;
+		drawScene(); 
+	});
+
 	// Pacman Movement
 	document.addEventListener("keydown", function(event){
 		
@@ -478,7 +504,7 @@ function setEventListeners(){
 
 		switch(key){
 			// Left
-			case 37 : // a
+			case 37 :
 				// Updating
 	
 				tx -= 0.25;
@@ -557,18 +583,12 @@ function runWebGL() {
 	
 	setEventListeners();
 	
-	//initPacmanBuffer();
-
 	// Transform cube into sphere
 
 	centroidRefinement( vertices, colors, 6 );
     
-    //initPacmanBuffer();
-
  	moveToSphericalSurface( vertices );
     
-    //initFloorBuffer();
-    //initPacmanBuffer();
 	drawScene();
 
 	//tick();   
