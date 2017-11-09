@@ -15,6 +15,13 @@ var floorVertexPositionBuffer = null;
 	
 var floorVertexColorBuffer = null;
 
+// Global transformations
+
+globalTz = -10.0;
+
+globalXX = 0.0;
+
+globalYY = 0.0;
 
 // The local transformation parameters
 
@@ -48,93 +55,93 @@ var vertices = [
 
 		// FRONT FACE
 		 
-		-0.25, -0.25,  0.25,
+		-1.00, -1.00,  1.00,
 		 
-		 0.25, -0.25,  0.25,
+		 1.00, -1.00,  1.00,
 		 
-		 0.25,  0.25,  0.25,
+		 1.00,  1.00,  1.00,
 
 		 
-		 0.25,  0.25,  0.25,
+		 1.00,  1.00,  1.00,
 		 
-		-0.25,  0.25,  0.25,
+		-1.00,  1.00,  1.00,
 		 
-		-0.25, -0.25,  0.25,
+		-1.00, -1.00,  1.00,
 		
 		// TOP FACE
 		
-		-0.25,  0.25,  0.25,
+		-1.00,  1.00,  1.00,
 		 
-		 0.25,  0.25,  0.25,
+		 1.00,  1.00,  1.00,
 		 
-		 0.25,  0.25, -0.25,
+		 1.00,  1.00, -1.00,
 
 		 
-		 0.25,  0.25, -0.25,
+		 1.00,  1.00, -1.00,
 		 
-		-0.25,  0.25, -0.25,
+		-1.00,  1.00, -1.00,
 		 
-		-0.25,  0.25,  0.25,
+		-1.00,  1.00,  1.00,
 		
 		// BOTTOM FACE 
 		
-		-0.25, -0.25, -0.25,
+		-1.00, -1.00, -1.00,
 		 
-		 0.25, -0.25, -0.25,
+		 1.00, -1.00, -1.00,
 		 
-		 0.25, -0.25,  0.25,
+		 1.00, -1.00,  1.00,
 
 		 
-		 0.25, -0.25,  0.25,
+		 1.00, -1.00,  1.00,
 		 
-		-0.25, -0.25,  0.25,
+		-1.00, -1.00,  1.00,
 		 
-		-0.25, -0.25, -0.25,
+		-1.00, -1.00, -1.00,
 		
 		// LEFT FACE 
 		
-		-0.25,  0.25,  0.25,
+		-1.00,  1.00,  1.00,
 		 
-		-0.25, -0.25, -0.25,
+		-1.00, -1.00, -1.00,
 
-		-0.25, -0.25,  0.25,
+		-1.00, -1.00,  1.00,
 		 
 		 
-		-0.25,  0.25,  0.25,
+		-1.00,  1.00,  1.00,
 		 
-		-0.25,  0.25, -0.25,
+		-1.00,  1.00, -1.00,
 		 
-		-0.25, -0.25, -0.25,
+		-1.00, -1.00, -1.00,
 		
 		// RIGHT FACE 
 		
-		 0.25,  0.25, -0.25,
+		 1.00,  1.00, -1.00,
 		 
-		 0.25, -0.25,  0.25,
+		 1.00, -1.00,  1.00,
 
-		 0.25, -0.25, -0.25,
+		 1.00, -1.00, -1.00,
 		 
 		 
-		 0.25,  0.25, -0.25,
+		 1.00,  1.00, -1.00,
 		 
-		 0.25,  0.25,  0.25,
+		 1.00,  1.00,  1.00,
 		 
-		 0.25, -0.25,  0.25,
+		 1.00, -1.00,  1.00,
 		
 		// BACK FACE 
 		
-		-0.25,  0.25, -0.25,
+		-1.00,  1.00, -1.00,
 		 
-		 0.25, -0.25, -0.25,
+		 1.00, -1.00, -1.00,
 
-		-0.25, -0.25, -0.25,
+		-1.00, -1.00, -1.00,
 		 
 		 
-		-0.25,  0.25, -0.25,
+		-1.00,  1.00, -1.00,
 		 
-		 0.25,  0.25, -0.25,
+		 1.00,  1.00, -1.00,
 		 
-		 0.25, -0.25, -0.25,			 
+		 1.00, -1.00, -1.00,			 
 ];
 
 // And their colour
@@ -235,13 +242,13 @@ var colors = [
 
 var floor = [
 		
-		-50.00,  -2.00, 50.00,
+		-50.00,  -2.00,  50.00,
 
-		 50.00,  -2.00, 50.00,
+		 50.00,  -2.00,  50.00,
 
 		-50.00,  -2.00, -50.00,
 
-	     50.00,  -2.00, 50.00,
+	     50.00,  -2.00,  50.00,
 
 		 50.00,  -2.00, -50.00,
 
@@ -275,7 +282,7 @@ var floorColors = [
 
 // Handling the Vertex and the Color Buffers
 
-function initPacmanBuffer() {	
+function initCubeBuffer() {	
 	
 	// Coordinates
 		
@@ -358,7 +365,7 @@ function drawModel( angleXX, angleYY, angleZZ,
 	mvMatrix = mult( mvMatrix, rotationYYMatrix( angleYY ) );
 	
 	mvMatrix = mult( mvMatrix, rotationXXMatrix( angleXX ) );
-	
+
 	mvMatrix = mult( mvMatrix, scalingMatrix( sx, sy, sz ) );
 						 
 	// Passing the Model View Matrix to apply the current transformation
@@ -374,18 +381,89 @@ function drawModel( angleXX, angleYY, angleZZ,
 
 //----------------------------------------------------------------------------
 
+// Field Handling
+
+
+// w -> wall; f -> food; s -> super-food
+var w = 'w';
+var f = 'f';
+var s = 's';
+var field_structure = [
+	[w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w],
+	[w,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,w],
+	[w,f,w,w,w,w,w,w,f,w,f,w,w,w,w,w,w,f,w], 
+	[w,f,f,f,f,w,f,f,f,w,f,f,f,w,f,f,f,f,w], 
+	[w,w,f,w,f,w,f,w,w,w,w,w,f,w,f,w,f,w,w], 
+	[w,f,f,w,f,f,f,f,f,s,f,f,f,f,f,w,f,f,w], 
+	[w,f,w,w,f,w,w,w,f,w,f,w,w,w,f,w,w,f,w], 
+	[w,f,f,f,f,f,f,f,f,w,f,f,f,f,f,f,f,f,w], 
+	[w,f,w,w,f,w,f,w,w,w,w,w,f,w,f,w,w,f,w], 
+	[w,f,f,s,f,w,f,f,f,f,f,f,f,w,f,f,f,f,w], 
+	[w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w]
+];
+
+var field = {
+	structure: 	[],	
+	height: 	0,	
+	width: 		0,
+	xBlockSize:   1.0,
+	zBlockSize:   -1.0,
+	init: function(structure, height, width){
+		this.structure 	= structure;
+		this.height = height;
+		this.width 	= width;
+	}
+}
+
+function fieldBlock(type, xPos, yPos, zPos) {
+	this.type = type;
+	this.x = xPos;
+	this.y = yPos;
+	this.z = zPos;
+}
+
+function initField() {
+	var createdField = createField(field_structure);
+	var height = createdField.length;
+	var width = createdField[0].length;
+	field.init(createdField, height, width);
+}
+
+function createField(structure){	
+	var width = structure[0].length;
+	var height = structure.length;
+	var newField = [];
+	var line = [];
+
+	for (var i = 0; i < height; i++) {        		
+		for (var j = 0; j < width; j++) {
+			line.push(new fieldBlock(structure[i][j], i, 0, j));
+		}
+		newField.push(line);
+		line = [];
+	}
+	return newField;
+}
+
+//----------------------------------------------------------------------------
+
 //  Drawing the 3D scene
 
 function drawScene() {
 	
-	drawFloor();
+	// Clear color buffer
+	gl.clear(gl.COLOR_BUFFER_BIT);
+
+	//drawFloor();
 
 	drawPacman();
+
+	drawField();
 }
 
 function drawPacman() {
 
-	initPacmanBuffer();
+	initCubeBuffer();
 	
 	var pMatrix;
 	
@@ -395,10 +473,6 @@ function drawPacman() {
 	
 	pMatrix = perspective( 45, 1, 0.05, 50 );
 	
-	// Global transformation (Fix POV)
-	
-	globalTz = -10.0;
-
 	// Passing the Projection Matrix to apply the current projection
 	
 	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
@@ -406,8 +480,8 @@ function drawPacman() {
 	gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
 
 	mvMatrix = translationMatrix( 0, 0, globalTz );
-	
-	angleXX = 20;
+	mvMatrix = mult( mvMatrix, rotationYYMatrix( globalYY ) );
+	mvMatrix = mult( mvMatrix, rotationXXMatrix( globalXX ) );
 
 	// Instantianting the current model
 		
@@ -420,6 +494,54 @@ function drawPacman() {
 
 }
 
+function drawField() {
+	initCubeBuffer();
+
+	var pMatrix;
+			
+	// Computing the perspective matrix
+	
+	pMatrix = perspective( 45, 1, 0.05, 50 );
+
+	// Passing the Projection Matrix to apply the current projection
+	
+	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+	
+	gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
+
+	mvMatrix = translationMatrix( 0, 0, globalTz );
+	mvMatrix = mult( mvMatrix, rotationYYMatrix( globalYY ) );
+	mvMatrix = mult( mvMatrix, rotationXXMatrix( globalXX ) );
+	
+	for (var i = 0; i < field.height; i++) {
+		for (var j = 0; j < field.width; j++) {
+			if (field.structure[i][j].type == 'w') {
+				drawModel( angleXX, angleYY, angleZZ, 
+				           sx, sy, sz,
+				           j * field.xBlockSize, 0, i * field.xBlockSize * field.zBlockSize,
+				           mvMatrix,
+				           primitiveType,
+				           triangleVertexPositionBuffer );
+			} else if (field.structure[i][j].type == 'f') {
+				scale = 0.3;
+				drawModel( angleXX, angleYY, angleZZ, 
+				           sx - scale, sy - scale, sz - scale,
+				           j * field.xBlockSize, 0.3, i * field.xBlockSize * field.zBlockSize,
+				           mvMatrix,
+				           primitiveType,
+				           triangleVertexPositionBuffer );
+			} else if (field.structure[i][j].type == 's') {
+				scale = 0.5;
+				drawModel( angleXX, angleYY, angleZZ, 
+				           sx - scale, sy - scale, sz - scale,
+				           j * field.xBlockSize, 0.3, i * field.xBlockSize * field.zBlockSize,
+				           mvMatrix,
+				           primitiveType,
+				           triangleVertexPositionBuffer );
+			}
+		}
+	}	
+}
 
 function drawFloor() {
 
@@ -432,11 +554,7 @@ function drawFloor() {
 	// Computing the perspective matrix
 	
 	pMatrix = perspective( 45, 1, 0.05, 50 );
-
-	// Global transformation (Fix POV)
 	
-	globalTz = -10.0;
-
 	// Passing the Projection Matrix to apply the current projection
 	
 	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
@@ -444,9 +562,9 @@ function drawFloor() {
 	gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
 
 	mvMatrix = translationMatrix( 0, 0, globalTz );
+	mvMatrix = mult( mvMatrix, rotationYYMatrix( globalYY ) );
+	mvMatrix = mult( mvMatrix, rotationXXMatrix( globalXX ) );
 	
-	angleXX = 20;
-
 	// Instantianting the current model
 		
 	drawModel( angleXX, angleYY, angleZZ, 
@@ -472,16 +590,19 @@ function setEventListeners(){
 
 	var moving = false;
 	var xPos = 0;
+	var yPos = 0;
 
 	// Handle yys rotation with mouse movement
 	document.addEventListener("mousedown", function(event) {
 		xPos = event.pageX;
+		yPos = event.pageY;
 		moving = true;
 	});
 
 	document.addEventListener('mousemove', function(event){ 
 		if(moving){
-			angleYY += (xPos - event.pageX) * 0.05;
+			globalYY += (xPos - event.pageX) * 0.05;
+			globalXX += (yPos - event.pageY) * 0.05;
 			drawScene(); 
 		}
 	});
@@ -492,7 +613,7 @@ function setEventListeners(){
 
 	// Handle zoom with mouse scroll
 	document.addEventListener('mousewheel',function(event){
-		tz += event.deltaY > 0 ? 1 : -1;
+		globalTz += event.deltaY > 0 ? 1 : -1;
 		drawScene(); 
 	});
 
@@ -555,15 +676,17 @@ function initWebGL( canvas ) {
 		
 		gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
 		
-		// Drawing the triangles defining the model
-		
-		primitiveType = gl.TRIANGLES;
-				
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
 		// Enable face culling and depth test
 		
 		gl.enable( gl.CULL_FACE );
 		gl.enable( gl.DEPTH_TEST );
-        
+
+		// Drawing the triangles defining the model
+		
+		primitiveType = gl.TRIANGLES;
+			
 	} catch (e) {
 	}
 	if (!gl) {
@@ -585,10 +708,12 @@ function runWebGL() {
 	
 	// Transform cube into sphere
 
-	centroidRefinement( vertices, colors, 6 );
+	/*centroidRefinement( vertices, colors, 6 );
     
- 	moveToSphericalSurface( vertices );
-    
+ 	moveToSphericalSurface( vertices );*/
+	
+    initField();
+	
 	drawScene();
 
 	//tick();   
