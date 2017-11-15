@@ -347,6 +347,7 @@ var field = {
 	width: 		0,
 	xBlockSize: 1.0,
 	zBlockSize: 1.0,
+	speed:      0.05,
 	init: function(structure, height, width){
 		this.structure 	= structure;
 		this.height = height;
@@ -367,21 +368,35 @@ function fieldBlock(type, xPos, yPos, zPos) {
 }
 
 function character(id) {
-
+	this.x = 0.0;
+	this.z = 0.0;
+	this.xDirection = 0.0;
+	this.zDirection = 0.0;
+	this.nextDirection = {};
+	this.key = -1.0;
 	this.currentBlock = {};	// Reference to the current block
 	this.id = id;			// Character identificator
 
 	//Initialize parameters for character
-	this.init = function(x, y) {
+	this.init = function(x, z) {
 		
 		var i = parseInt(x + (field.width / 2));
-		var j = parseInt(y + (field.height / 2));
+		var j = parseInt(z + (field.height / 2));
+
+		this.x = field.structure[j][i].x;
+		this.z = field.structure[j][i].z;
 
 		this.currentBlock = field.structure[j][i];
 	};
 
-	this.updatePosition = function(incrementX, incrementZ) {
-		this.currentBlock = field.structure[this.currentBlock.z + incrementZ][this.currentBlock.x + incrementX];
+	this.updateDirection = function(moveX, moveZ, key) {
+		this.nextDirection['x'] = moveX;
+		this.nextDirection['z'] = moveZ;
+		this.nextDirection['key'] = key;
+	};
+
+	this.updatePosition = function() {
+		this.currentBlock = field.structure[this.currentBlock.z + this.zDirection][this.currentBlock.x + this.xDirection];
 	};
 }
 
@@ -461,17 +476,41 @@ function computeAllMoves(structure, field) {
 	}
 }
 
-function doMove(x, y, key) {
+function doMove() {
+
+	// Walk while not crashing
+	if (pacman.currentBlock.moves[pacman.key] != undefined) {
+		pacman.x += pacman.xDirection * field.speed;
+		pacman.z += pacman.zDirection * field.speed;
+	}
+
 	// Update current position, if possible
-	if (pacman.currentBlock.moves[key] != undefined){
-		pacman.updatePosition(x, y);
-		if (pacman.currentBlock.type == 'f') {
-			pacman.currentBlock.type = '';
-			score++;
-		} else if (pacman.currentBlock.type == 's') {
-			pacman.currentBlock.type = '';
-			score += 10;
-		}
+	if (parseFloat(pacman.x.toFixed(2)) % 1.0 == 0 && parseFloat(pacman.z.toFixed(2)) % 1.0 == 0) {
+		
+		// Only update the position if it is a valid move
+		if (pacman.currentBlock.moves[pacman.key] != undefined)
+			pacman.updatePosition();
+		
+		// Change to next direction, if possible
+		if (Object.keys(pacman.nextDirection).length !== 0 && pacman.currentBlock.moves[pacman.nextDirection['key']] != undefined) {
+			pacman.xDirection = pacman.nextDirection['x'];
+			pacman.zDirection = pacman.nextDirection['z'];
+			pacman.key = pacman.nextDirection['key'];
+			pacman.nextDirection = {}; 
+		} 
+
+		// Stop if it is an invalid move
+		if (pacman.currentBlock.moves[pacman.key] == undefined)
+			pacman.updateDirection(0, 0, pacman.key);
+	}
+	
+	// Eat the food
+	if (pacman.currentBlock.type == 'f') {
+		pacman.currentBlock.type = '';
+		score++;
+	} else if (pacman.currentBlock.type == 's') {
+		pacman.currentBlock.type = '';
+		score += 10;
 	}
 	
 	// Render the viewport
@@ -520,7 +559,7 @@ function drawPacman() {
 	// Instantianting the current model
 	drawModel( angleXX, angleYY, angleZZ, 
 	           sx, sy, sz,
-	           pacman.currentBlock.x - (field.width / 2), ty, pacman.currentBlock.z - (field.height / 2),
+	           pacman.x - (field.width / 2), ty, pacman.z - (field.height / 2),
 	           mvMatrix,
 	           primitiveType,
 	           triangleVertexPositionBuffer );
@@ -581,7 +620,7 @@ function tick() {
 	
 	requestAnimFrame(tick);
 	
-	drawScene();
+	doMove();
 }
 
 //----------------------------------------------------------------------------
@@ -626,19 +665,19 @@ function setEventListeners(){
 		switch(key){
 			// Left
 			case 37 :
-				doMove(-1, 0, key);
+				pacman.updateDirection(-1, 0, key);
 				break;
 			// Up
 			case 38 :
-				doMove(0, -1, key);
+				pacman.updateDirection(0, -1, key);
 				break;
 			// Right
 			case 39 :
-				doMove(1, 0, key);
+				pacman.updateDirection(1, 0, key);
 				break;
 			// Down
 			case 40 : 
-				doMove(0, 1, key);
+				pacman.updateDirection(0, 1, key);
 				break;
 		}
 	});
@@ -698,5 +737,5 @@ function runWebGL() {
 	
 	drawScene();
 
-	//tick();   
+	tick();   
 }
