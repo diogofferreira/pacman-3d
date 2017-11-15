@@ -354,6 +354,8 @@ var field = {
 	}
 }
 
+var score = 0;
+
 var pacman;
 
 function fieldBlock(type, xPos, yPos, zPos) {
@@ -388,6 +390,7 @@ function initField() {
 	var height = createdField.length;
 	var width = createdField[0].length;
 
+	// Adjust field position (center in 0,0)
 	tx = width / 2;
 	tz = height / 2;
 
@@ -396,8 +399,12 @@ function initField() {
 	// Compute all possible movements
 	computeAllMoves(field_structure, field.structure);
 
+	// Create pacman and render him in the center of the field
 	pacman = new character("Pac");
 	pacman.init(0.0, 0.0);
+
+	// Eat the food under him
+	pacman.currentBlock.type = '';
 }
 
 function createFieldStructure(structure){	
@@ -454,6 +461,23 @@ function computeAllMoves(structure, field) {
 	}
 }
 
+function doMove(x, y, key) {
+	// Update current position, if possible
+	if (pacman.currentBlock.moves[key] != undefined){
+		pacman.updatePosition(x, y);
+		if (pacman.currentBlock.type == 'f') {
+			pacman.currentBlock.type = '';
+			score++;
+		} else if (pacman.currentBlock.type == 's') {
+			pacman.currentBlock.type = '';
+			score += 10;
+		}
+	}
+	
+	// Render the viewport
+	drawScene(); 
+}
+
 //----------------------------------------------------------------------------
 
 //  Drawing the 3D scene
@@ -466,6 +490,9 @@ function drawScene() {
 	drawField();
 
 	drawPacman();
+
+	// Update page's score
+	document.getElementById('score').innerHTML = "Score : " + score;
 }
 
 function drawPacman() {
@@ -599,43 +626,22 @@ function setEventListeners(){
 		switch(key){
 			// Left
 			case 37 :
-				// Updating
-				if (pacman.currentBlock.moves[key] != undefined)
-					pacman.updatePosition(-1, 0);
-				
-				// Render the viewport
-				drawScene(); 
-
+				doMove(-1, 0, key);
 				break;
 			// Up
 			case 38 :
-				if (pacman.currentBlock.moves[key] != undefined)
-					pacman.updatePosition(0, -1);
-
-				// Render the viewport
-				drawScene(); 
-
+				doMove(0, -1, key);
 				break;
 			// Right
 			case 39 :
-				if (pacman.currentBlock.moves[key] != undefined)
-					pacman.updatePosition(1, 0);
-				
-				// Render the viewport
-				drawScene(); 
-
+				doMove(1, 0, key);
 				break;
 			// Down
 			case 40 : 
-				if (pacman.currentBlock.moves[key] != undefined)
-					pacman.updatePosition(0, 1);
-				
-				// Render the viewport
-				drawScene(); 
-
+				doMove(0, 1, key);
 				break;
 		}
-	});		     
+	});
 }
 
 //----------------------------------------------------------------------------
