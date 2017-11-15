@@ -358,6 +358,7 @@ var field = {
 var score = 0;
 
 var pacman;
+var ghosts = [];
 
 function fieldBlock(type, xPos, yPos, zPos) {
 	this.type = type;
@@ -400,6 +401,17 @@ function character(id) {
 	};
 }
 
+function randomCoordinates() {
+	var x, z;
+
+	do {
+		x = Math.floor(Math.random() * field.width);
+	    z = Math.floor(Math.random() * field.height);
+	} while(field.structure[z][x].type == 'w')
+
+	return {'x': x - (field.width / 2), 'z': z - (field.height / 2)}
+}
+
 function initField() {
 	var createdField = createFieldStructure(field_structure);
 	var height = createdField.length;
@@ -415,11 +427,20 @@ function initField() {
 	computeAllMoves(field_structure, field.structure);
 
 	// Create pacman and render him in the center of the field
-	pacman = new character("Pac");
+	pacman = new character('Pac');
 	pacman.init(0.0, 0.0);
-
 	// Eat the food under him
 	pacman.currentBlock.type = '';
+
+	// Create ghosts and render them in a random position
+	ghosts.push(new character('G1'));
+	ghosts.push(new character('G2'));
+	ghosts.push(new character('G3'));
+
+	for (var i=0; i<ghosts.length; i++){
+		var coordinates = randomCoordinates();
+		ghosts[i].init(coordinates['x'], coordinates['z']);
+	}
 }
 
 function createFieldStructure(structure){	
@@ -476,7 +497,7 @@ function computeAllMoves(structure, field) {
 	}
 }
 
-function doMove() {
+function movePacman() {
 
 	// Walk while not crashing
 	if (pacman.currentBlock.moves[pacman.key] != undefined) {
@@ -512,11 +533,50 @@ function doMove() {
 		pacman.currentBlock.type = '';
 		score += 10;
 	}
-	
-	// Render the viewport
-	drawScene(); 
 }
 
+function moveGhost(ghost) {
+
+	var possibleMoves = [{
+		'x' : 1,
+		'z' : 0,
+		'key': 39
+	},{
+		'x' : -1,
+		'z' : 0,
+		'key': 37
+	},{
+		'x' : 0,
+		'z' : 1,
+		'key': 40
+	},{
+		'x' : 0,
+		'z' : -1,
+		'key': 38
+	}];
+
+	// Walk while not crashing
+	if (ghost.currentBlock.moves[ghost.key] != undefined) {
+		ghost.x += ghost.xDirection * field.speed;
+		ghost.z += ghost.zDirection * field.speed;
+	}
+
+	// Update current position, if possible
+	if (parseFloat(ghost.x.toFixed(2)) % 1.0 == 0 && parseFloat(ghost.z.toFixed(2)) % 1.0 == 0) {
+		
+		// Only update the position if it is a valid move
+		if (ghost.currentBlock.moves[ghost.key] != undefined)
+			ghost.updatePosition();
+
+		// Stop if it is an invalid move
+		if (ghost.currentBlock.moves[ghost.key] == undefined) {
+			var newDirection = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+			ghost.xDirection = newDirection['x'];
+			ghost.zDirection = newDirection['z'];
+			ghost.key = newDirection['key'];
+		}
+	}
+}
 //----------------------------------------------------------------------------
 
 //  Drawing the 3D scene
@@ -528,13 +588,16 @@ function drawScene() {
 	
 	drawField();
 
-	drawPacman();
+	drawChar(pacman);
+
+	for(var i = 0; i < ghosts.length; i++)
+		drawChar(ghosts[i]);
 
 	// Update page's score
 	document.getElementById('score').innerHTML = "Score : " + score;
 }
 
-function drawPacman() {
+function drawChar(character) {
 
 	initCubeBuffer();
 	
@@ -559,7 +622,7 @@ function drawPacman() {
 	// Instantianting the current model
 	drawModel( angleXX, angleYY, angleZZ, 
 	           sx, sy, sz,
-	           pacman.x - (field.width / 2), ty, pacman.z - (field.height / 2),
+	           character.x - (field.width / 2), ty, character.z - (field.height / 2),
 	           mvMatrix,
 	           primitiveType,
 	           triangleVertexPositionBuffer );
@@ -617,10 +680,16 @@ function drawField() {
 // Timer
 
 function tick() {
-	
+
 	requestAnimFrame(tick);
 	
-	doMove();
+	movePacman();
+
+	for(var i = 0; i < ghosts.length; i++)
+		moveGhost(ghosts[i]);
+
+	// Render the viewport
+	drawScene(); 
 }
 
 //----------------------------------------------------------------------------
