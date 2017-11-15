@@ -548,8 +548,10 @@ function movePacman() {
 	} else if (pacman.currentBlock.type == 's') {
 		pacman.currentBlock.type = '';
 		score += 10;
+		
+		// Activate super mode during ten seconds
 		superMode = true;
-		// Super mode during ten seconds
+
 		counter = 10;
 		interval = setInterval(function() {
 	        counter--;
