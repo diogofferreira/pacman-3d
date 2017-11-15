@@ -15,6 +15,8 @@ var floorVertexPositionBuffer = null;
 	
 var floorVertexColorBuffer = null;
 
+var primitiveType;
+
 // Global transformations
 
 globalTz = -30.0;
@@ -357,6 +359,7 @@ var field = {
 
 var score = 0;
 var gameOver = false;
+var superMode = false;
 
 var pacman;
 var ghosts = [];
@@ -545,6 +548,19 @@ function movePacman() {
 	} else if (pacman.currentBlock.type == 's') {
 		pacman.currentBlock.type = '';
 		score += 10;
+		superMode = true;
+		// Super mode during ten seconds
+		counter = 10;
+		interval = setInterval(function() {
+	        counter--;
+	        if (counter === 0) {
+	            superMode = false;
+				document.getElementById('super-mode').innerHTML = "";
+	            clearInterval(interval);
+	            return;
+	        } else
+				document.getElementById('super-mode').innerHTML = "SUPER MODE ending in " + counter + " seconds";
+    	}, 1000);
 	}
 }
 
@@ -575,8 +591,14 @@ function moveGhost(ghost) {
 	}
 
 	// Check collisions with pacman
-	if (Math.abs(ghost.x.toFixed(1)-pacman.x.toFixed(1)) < field.xBlockSize && Math.abs(ghost.z.toFixed(1)-pacman.z.toFixed(1)) < field.zBlockSize)
-		endGame();
+	if (Math.abs(ghost.x.toFixed(1)-pacman.x.toFixed(1)) < field.xBlockSize && Math.abs(ghost.z.toFixed(1)-pacman.z.toFixed(1)) < field.zBlockSize) {
+		if(superMode) {
+			var idx = ghosts.indexOf(ghost);
+			ghosts.splice(idx, 1);
+			score += 100;
+		} else
+			endGame();
+	}
 
 	// Update current position, if possible
 	if (parseFloat(ghost.x.toFixed(2)) % 1.0 == 0 && parseFloat(ghost.z.toFixed(2)) % 1.0 == 0) {
