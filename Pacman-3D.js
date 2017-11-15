@@ -17,9 +17,9 @@ var floorVertexColorBuffer = null;
 
 // Global transformations
 
-globalTz = -10.0;
+globalTz = -30.0;
 
-globalXX = 0.0;
+globalXX = 90.0;
 
 globalYY = 0.0;
 
@@ -240,36 +240,6 @@ var colors = [
 		 1.00,  0.00,  0.00,			 			 
 ];
 
-var floor = [
-		
-		-50.00,  -2.00,  50.00,
-
-		 50.00,  -2.00,  50.00,
-
-		-50.00,  -2.00, -50.00,
-
-	     50.00,  -2.00,  50.00,
-
-		 50.00,  -2.00, -50.00,
-
-		-50.00,  -2.00, -50.00,
-];
-
-var floorColors = [
-		 
-		 0.00,  0.00,  1.00,
-		 
-		 0.00,  0.00,  1.00,
-		 
-		 0.00,  0.00,  1.00,	
-
-		 0.00,  0.00,  1.00,
-		 
-		 0.00,  0.00,  1.00,
-		 
-		 0.00,  0.00,  1.00,	
-];
-
 //----------------------------------------------------------------------------
 //
 // The WebGL code
@@ -310,37 +280,6 @@ function initCubeBuffer() {
 	
 	gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 
 			triangleVertexColorBuffer.itemSize, 
-			gl.FLOAT, false, 0, 0);
-}
-
-function initFloorBuffer() {
-	
-	// Coordinates
-		
-	floorVertexPositionBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexPositionBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(floor), gl.STATIC_DRAW);
-	floorVertexPositionBuffer.itemSize = 3;
-	floorVertexPositionBuffer.numItems = floor.length / 3;			
-
-	// Associating to the vertex shader
-	
-	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 
-			floorVertexPositionBuffer.itemSize, 
-			gl.FLOAT, false, 0, 0);
-
-	// Colors
-		
-	floorVertexColorBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexColorBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(floorColors), gl.STATIC_DRAW);
-	floorVertexColorBuffer.itemSize = 3;
-	floorVertexColorBuffer.numItems = floorColors.length / 3;			
-
-	// Associating to the vertex shader
-	
-	gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 
-			floorVertexColorBuffer.itemSize, 
 			gl.FLOAT, false, 0, 0);
 }
 
@@ -403,11 +342,11 @@ var field_structure = [
 ];
 
 var field = {
-	structure: 	[],	
+	structure: 	[],
 	height: 	0,	
 	width: 		0,
-	xBlockSize:   1.0,
-	zBlockSize:   -1.0,
+	xBlockSize: 1.0,
+	zBlockSize: 1.0,
 	init: function(structure, height, width){
 		this.structure 	= structure;
 		this.height = height;
@@ -415,21 +354,53 @@ var field = {
 	}
 }
 
+var pacman;
+
 function fieldBlock(type, xPos, yPos, zPos) {
 	this.type = type;
 	this.x = xPos;
 	this.y = yPos;
 	this.z = zPos;
+	this.moves = [];   	    // Possible moves on that block
+}
+
+function character(id) {
+
+	this.currentBlock = {};	// Reference to the current block
+	this.id = id;			// Character identificator
+
+	//Initialize parameters for character
+	this.init = function(x, y) {
+		
+		var i = parseInt(x + (field.width / 2));
+		var j = parseInt(y + (field.height / 2));
+
+		this.currentBlock = field.structure[j][i];
+	};
+
+	this.updatePosition = function(incrementX, incrementZ) {
+		this.currentBlock = field.structure[this.currentBlock.z + incrementZ][this.currentBlock.x + incrementX];
+	};
 }
 
 function initField() {
-	var createdField = createField(field_structure);
+	var createdField = createFieldStructure(field_structure);
 	var height = createdField.length;
 	var width = createdField[0].length;
+
+	tx = width / 2;
+	tz = height / 2;
+
 	field.init(createdField, height, width);
+	
+	// Compute all possible movements
+	computeAllMoves(field_structure, field.structure);
+
+	pacman = new character("Pac");
+	pacman.init(0.0, 0.0);
 }
 
-function createField(structure){	
+function createFieldStructure(structure){	
 	var width = structure[0].length;
 	var height = structure.length;
 	var newField = [];
@@ -437,12 +408,50 @@ function createField(structure){
 
 	for (var i = 0; i < height; i++) {        		
 		for (var j = 0; j < width; j++) {
-			line.push(new fieldBlock(structure[i][j], i, 0, j));
+			line.push(new fieldBlock(structure[i][j], j, 0, i));
 		}
 		newField.push(line);
 		line = [];
 	}
 	return newField;
+}
+
+function computeAllMoves(structure, field) {
+	var width = structure[0].length;
+	var height = structure.length;
+
+	for (var i = 0; i < height; i++) {        		
+		for (var j = 0; j < width; j++) {
+			// Up block
+			if (i-1 >= 0) {
+				var up = field[i-1][j];
+				//Check if the block is food
+				if (up.type == 'f' || up.type == 's')
+					field[i][j].moves[38] = up;
+			}
+			// Down block
+			if (i+1 < height) {
+				var down = field[i+1][j];
+				//Check if the block is food
+				if (down.type == 'f' || down.type == 's')
+					field[i][j].moves[40] = down;
+			}
+			// Left block
+			if (j-1 >= 0) {
+				var left = field[i][j-1];
+				//Check if the block is food
+				if (left.type == 'f' || left.type == 's')
+					field[i][j].moves[37] = left;
+			}
+			// Right block
+			if (j+1 < width){
+				var right = field[i][j+1];
+				//Check if the block is food
+				if (right.type == 'f' || right.type == 's')
+					field[i][j].moves[39] = right;
+			}  			
+		}
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -453,12 +462,10 @@ function drawScene() {
 	
 	// Clear color buffer
 	gl.clear(gl.COLOR_BUFFER_BIT);
-
-	//drawFloor();
+	
+	drawField();
 
 	drawPacman();
-
-	drawField();
 }
 
 function drawPacman() {
@@ -484,14 +491,12 @@ function drawPacman() {
 	mvMatrix = mult( mvMatrix, rotationXXMatrix( globalXX ) );
 
 	// Instantianting the current model
-		
 	drawModel( angleXX, angleYY, angleZZ, 
 	           sx, sy, sz,
-	           tx, ty, tz,
+	           pacman.currentBlock.x - (field.width / 2), ty, pacman.currentBlock.z - (field.height / 2),
 	           mvMatrix,
 	           primitiveType,
 	           triangleVertexPositionBuffer );
-
 }
 
 function drawField() {
@@ -518,61 +523,29 @@ function drawField() {
 			if (field.structure[i][j].type == 'w') {
 				drawModel( angleXX, angleYY, angleZZ, 
 				           sx, sy, sz,
-				           j * field.xBlockSize, 0, i * field.xBlockSize * field.zBlockSize,
+				           (j * field.xBlockSize) - tx, 0, (i * field.xBlockSize * field.zBlockSize) - tz,
 				           mvMatrix,
 				           primitiveType,
 				           triangleVertexPositionBuffer );
 			} else if (field.structure[i][j].type == 'f') {
-				scale = 0.3;
+				scale = 0.4;
 				drawModel( angleXX, angleYY, angleZZ, 
 				           sx - scale, sy - scale, sz - scale,
-				           j * field.xBlockSize, 0.3, i * field.xBlockSize * field.zBlockSize,
+				           (j * field.xBlockSize) - tx, 0, (i * field.xBlockSize * field.zBlockSize) - tz,
 				           mvMatrix,
 				           primitiveType,
 				           triangleVertexPositionBuffer );
 			} else if (field.structure[i][j].type == 's') {
-				scale = 0.5;
+				scale = 0.3;
 				drawModel( angleXX, angleYY, angleZZ, 
 				           sx - scale, sy - scale, sz - scale,
-				           j * field.xBlockSize, 0.3, i * field.xBlockSize * field.zBlockSize,
+				           (j * field.xBlockSize) - tx, 0, (i * field.xBlockSize * field.zBlockSize) - tz,
 				           mvMatrix,
 				           primitiveType,
 				           triangleVertexPositionBuffer );
 			}
 		}
 	}	
-}
-
-function drawFloor() {
-
-	initFloorBuffer();
-	
-	var pMatrix;
-	
-	var mvMatrix = mat4();
-		
-	// Computing the perspective matrix
-	
-	pMatrix = perspective( 45, 1, 0.05, 50 );
-	
-	// Passing the Projection Matrix to apply the current projection
-	
-	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-	
-	gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
-
-	mvMatrix = translationMatrix( 0, 0, globalTz );
-	mvMatrix = mult( mvMatrix, rotationYYMatrix( globalYY ) );
-	mvMatrix = mult( mvMatrix, rotationXXMatrix( globalXX ) );
-	
-	// Instantianting the current model
-		
-	drawModel( angleXX, angleYY, angleZZ, 
-	           sx, sy, sz,
-	           tx, ty, tz,
-	           mvMatrix,
-	           primitiveType,
-	           floorVertexPositionBuffer );
 }
 
 // Timer
@@ -627,8 +600,8 @@ function setEventListeners(){
 			// Left
 			case 37 :
 				// Updating
-	
-				tx -= 0.25;
+				if (pacman.currentBlock.moves[key] != undefined)
+					pacman.updatePosition(-1, 0);
 				
 				// Render the viewport
 				drawScene(); 
@@ -636,15 +609,17 @@ function setEventListeners(){
 				break;
 			// Up
 			case 38 :
-				tz -= 0.50;
-				
+				if (pacman.currentBlock.moves[key] != undefined)
+					pacman.updatePosition(0, -1);
+
 				// Render the viewport
 				drawScene(); 
 
 				break;
 			// Right
 			case 39 :
-				tx += 0.25;
+				if (pacman.currentBlock.moves[key] != undefined)
+					pacman.updatePosition(1, 0);
 				
 				// Render the viewport
 				drawScene(); 
@@ -652,7 +627,8 @@ function setEventListeners(){
 				break;
 			// Down
 			case 40 : 
-				tz += 0.50;
+				if (pacman.currentBlock.moves[key] != undefined)
+					pacman.updatePosition(0, 1);
 				
 				// Render the viewport
 				drawScene(); 
