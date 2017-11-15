@@ -356,6 +356,7 @@ var field = {
 }
 
 var score = 0;
+var gameOver = false;
 
 var pacman;
 var ghosts = [];
@@ -497,6 +498,18 @@ function computeAllMoves(structure, field) {
 	}
 }
 
+function endGame() {
+	gameOver = true;
+
+	// Disable movements
+	pacman.updateDirection(0, 0, pacman.key);
+	for(var i = 0; i < ghosts.length; i++)
+		ghosts[i].updateDirection(0, 0, ghosts[i].key);
+
+	document.getElementById('score').innerHTML = "";
+	document.getElementById('game-over').innerHTML = "GAME OVER.\n Score : " + score;
+}
+
 function movePacman() {
 
 	// Walk while not crashing
@@ -561,6 +574,10 @@ function moveGhost(ghost) {
 		ghost.z += ghost.zDirection * field.speed;
 	}
 
+	// Check collisions with pacman
+	if (Math.abs(ghost.x.toFixed(1)-pacman.x.toFixed(1)) < field.xBlockSize && Math.abs(ghost.z.toFixed(1)-pacman.z.toFixed(1)) < field.zBlockSize)
+		endGame();
+
 	// Update current position, if possible
 	if (parseFloat(ghost.x.toFixed(2)) % 1.0 == 0 && parseFloat(ghost.z.toFixed(2)) % 1.0 == 0) {
 		
@@ -594,7 +611,8 @@ function drawScene() {
 		drawChar(ghosts[i]);
 
 	// Update page's score
-	document.getElementById('score').innerHTML = "Score : " + score;
+	if (!gameOver)
+		document.getElementById('score').innerHTML = "Score : " + score;
 }
 
 function drawChar(character) {
@@ -730,6 +748,10 @@ function setEventListeners(){
 		
 		// Getting the pressed key 
 		var key = event.keyCode;
+
+		// Disable movements when game over
+		if (gameOver)
+			key = -1;
 
 		switch(key){
 			// Left
