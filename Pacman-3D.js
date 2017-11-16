@@ -360,6 +360,7 @@ var field = {
 var score = 0;
 var gameOver = false;
 var superMode = false;
+var remainingFood = 0;
 
 var pacman;
 var ghosts = [];
@@ -456,6 +457,9 @@ function createFieldStructure(structure){
 	for (var i = 0; i < height; i++) {        		
 		for (var j = 0; j < width; j++) {
 			line.push(new fieldBlock(structure[i][j], j, 0, i));
+			// Count food present on field
+			if (structure[i][j] == 'f' || structure[i][j] == 's')
+				remainingFood++;
 		}
 		newField.push(line);
 		line = [];
@@ -501,16 +505,21 @@ function computeAllMoves(structure, field) {
 	}
 }
 
-function endGame() {
-	gameOver = true;
+function endGame(won) {
 
-	// Disable movements
+	// Disable keyboard movements and stop pacman
+	gameOver = true;
 	pacman.updateDirection(0, 0, pacman.key);
+
+	// Disable ghost movements
 	for(var i = 0; i < ghosts.length; i++)
 		ghosts[i].updateDirection(0, 0, ghosts[i].key);
 
+	// Update page infos
+	var result = won ? "YOU WON." : "GAME OVER.";
+
+	document.getElementById('result').innerHTML = result + " Score : " + score;
 	document.getElementById('score').innerHTML = "";
-	document.getElementById('game-over').innerHTML = "GAME OVER.\n Score : " + score;
 }
 
 function movePacman() {
@@ -541,18 +550,25 @@ function movePacman() {
 			pacman.updateDirection(0, 0, pacman.key);
 	}
 	
-	// Eat the food
 	if (pacman.currentBlock.type == 'f') {
+		// Eat the food
 		pacman.currentBlock.type = '';
-		score++;
-	} else if (pacman.currentBlock.type == 's') {
-		pacman.currentBlock.type = '';
-		score += 10;
 		
-		// Activate super mode during ten seconds
+		// Update score and remaining food
+		score++;
+		remainingFood--;
+	} else if (pacman.currentBlock.type == 's') {
+		// Eat the food
+		pacman.currentBlock.type = '';
+
+		// Update score and remaining food
+		score += 10;
+		remainingFood--;
+
+		// Activate super mode during fifteen seconds
 		superMode = true;
 
-		counter = 10;
+		counter = 15;
 		interval = setInterval(function() {
 	        counter--;
 	        if (counter === 0) {
@@ -564,6 +580,10 @@ function movePacman() {
 				document.getElementById('super-mode').innerHTML = "SUPER MODE ending in " + counter + " seconds";
     	}, 1000);
 	}
+
+	// If there isn't more food, the user wins
+	if (remainingFood == 1)
+		endGame(true);
 }
 
 function moveGhost(ghost) {
@@ -599,7 +619,8 @@ function moveGhost(ghost) {
 			ghosts.splice(idx, 1);
 			score += 100;
 		} else
-			endGame();
+			// Lost game
+			endGame(false);
 	}
 
 	// Update current position, if possible
