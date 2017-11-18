@@ -22,13 +22,13 @@ Passing the Model-View Matrix and the Projection Matrix.
 	
     attribute vec3 aVertexPosition;
 
-    attribute vec3 aVertexColor;
+    attribute vec2 aTextureCoord;
     
     uniform mat4 uMVMatrix;
 
     uniform mat4 uPMatrix;
 
-    varying vec4 vertexColor;
+    varying vec2 vTextureCoord;
     
     void main(void) {
 		
@@ -44,7 +44,7 @@ Passing the Model-View Matrix and the Projection Matrix.
         
         // Converting the RGB color value to RGBA
         
-        vertexColor = vec4(aVertexColor, 1.0);
+        vTextureCoord = aTextureCoord;
 
     }
 </script>
@@ -53,13 +53,15 @@ Passing the Model-View Matrix and the Projection Matrix.
 
 	precision mediump float;
 	
-	varying vec4 vertexColor;
+	varying vec2 vTextureCoord;
+
+    uniform sampler2D uSampler;
 	
 	void main(void) {
 		
 		// Using the passed vertex color
 		
-		gl_FragColor = vertexColor;
+        gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
 	}
 
 </script>
@@ -86,18 +88,18 @@ Passing the Model-View Matrix and the Projection Matrix.
 
 </head>
 
-<body onload="runWebGL();">
+<body onload="runWebGL();" style="background: black;">
 
-	<div style="text-align: center">
-		
-		<p>Pacman 3D powered by Apollo Team</p>
-		
-		<canvas id="my-canvas" style="border:1px solid #000000;" width="600" height="600"></canvas>		
+	<div align="center">
+		<img src="assets/logo.gif" style="width:300px; height:150px;"/>
+	</div>
 
-		<h3 id="score" style="color:black;"></h3>
+	<div align="center">
+		<canvas id="my-canvas" style="border: none;" width="1024" height="750"></canvas>		
+
+		<h3 id="score" style="color:yellow;"></h3>
 		<h1 id="super-mode" style="color:red;"></h1>
-		<h1 id="result" style="color:black;"></h2>
-
+		<h1 id="result" style="color:yellow;"></h2>
 	</div>
 
 </body>

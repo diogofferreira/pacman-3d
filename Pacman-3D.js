@@ -7,19 +7,15 @@ var gl = null; // WebGL context
 
 var shaderProgram = null;
 
-var triangleVertexPositionBuffer = null;
+var cubeVertexPositionBuffer = null;
 	
-var triangleVertexColorBuffer = null;
+var cubeVertexColorBuffer = null;
 
-var floorVertexPositionBuffer = null;
-	
-var floorVertexColorBuffer = null;
-
-var primitiveType;
+var cubeVertexIndexBuffer = null;
 
 // Global transformations
 
-globalTz = -30.0;
+globalTz = -25.0;
 
 globalXX = 90.0;
 
@@ -51,196 +47,112 @@ var sy = 0.5;
 
 var sz = 0.5;
 
-// For storing the vertices defining the triangles
+// For storing the vertices defining the vertices
 
-var vertices = [
+vertices = [
+            // Front face
+            -1.0, -1.0,  1.0,
+             1.0, -1.0,  1.0,
+             1.0,  1.0,  1.0,
+            -1.0,  1.0,  1.0,
 
-		// FRONT FACE
-		 
-		-1.00, -1.00,  1.00,
-		 
-		 1.00, -1.00,  1.00,
-		 
-		 1.00,  1.00,  1.00,
+            // Back face
+            -1.0, -1.0, -1.0,
+            -1.0,  1.0, -1.0,
+             1.0,  1.0, -1.0,
+             1.0, -1.0, -1.0,
 
-		 
-		 1.00,  1.00,  1.00,
-		 
-		-1.00,  1.00,  1.00,
-		 
-		-1.00, -1.00,  1.00,
-		
-		// TOP FACE
-		
-		-1.00,  1.00,  1.00,
-		 
-		 1.00,  1.00,  1.00,
-		 
-		 1.00,  1.00, -1.00,
+            // Top face
+            -1.0,  1.0, -1.0,
+            -1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0, -1.0,
 
-		 
-		 1.00,  1.00, -1.00,
-		 
-		-1.00,  1.00, -1.00,
-		 
-		-1.00,  1.00,  1.00,
-		
-		// BOTTOM FACE 
-		
-		-1.00, -1.00, -1.00,
-		 
-		 1.00, -1.00, -1.00,
-		 
-		 1.00, -1.00,  1.00,
+            // Bottom face
+            -1.0, -1.0, -1.0,
+             1.0, -1.0, -1.0,
+             1.0, -1.0,  1.0,
+            -1.0, -1.0,  1.0,
 
-		 
-		 1.00, -1.00,  1.00,
-		 
-		-1.00, -1.00,  1.00,
-		 
-		-1.00, -1.00, -1.00,
-		
-		// LEFT FACE 
-		
-		-1.00,  1.00,  1.00,
-		 
-		-1.00, -1.00, -1.00,
+            // Right face
+             1.0, -1.0, -1.0,
+             1.0,  1.0, -1.0,
+             1.0,  1.0,  1.0,
+             1.0, -1.0,  1.0,
 
-		-1.00, -1.00,  1.00,
-		 
-		 
-		-1.00,  1.00,  1.00,
-		 
-		-1.00,  1.00, -1.00,
-		 
-		-1.00, -1.00, -1.00,
-		
-		// RIGHT FACE 
-		
-		 1.00,  1.00, -1.00,
-		 
-		 1.00, -1.00,  1.00,
-
-		 1.00, -1.00, -1.00,
-		 
-		 
-		 1.00,  1.00, -1.00,
-		 
-		 1.00,  1.00,  1.00,
-		 
-		 1.00, -1.00,  1.00,
-		
-		// BACK FACE 
-		
-		-1.00,  1.00, -1.00,
-		 
-		 1.00, -1.00, -1.00,
-
-		-1.00, -1.00, -1.00,
-		 
-		 
-		-1.00,  1.00, -1.00,
-		 
-		 1.00,  1.00, -1.00,
-		 
-		 1.00, -1.00, -1.00,			 
+            // Left face
+            -1.0, -1.0, -1.0,
+            -1.0, -1.0,  1.0,
+            -1.0,  1.0,  1.0,
+            -1.0,  1.0, -1.0
 ];
 
-// And their colour
+// Vertex indices defining the triangles
+        
+var cubeVertexIndices = [
 
-var colors = [
+            0, 1, 2,      0, 2, 3,    // Front face
 
-		 // FRONT FACE
-		 	
-		 1.00,  0.00,  1.00,
-		 
-		 1.00,  0.00,  1.00,
-		 
-		 1.00,  0.00,  1.00,
+            4, 5, 6,      4, 6, 7,    // Back face
 
-		 	
-		 1.00,  0.00,  1.00,
-		 
-		 1.00,  0.00,  1.00,
-		 
-		 1.00,  0.00,  1.00,
-		 			 
-		 // TOP FACE
-		 	
-		 1.00,  0.00,  0.00,
-		 
-		 1.00,  0.00,  0.00,
-		 
-		 1.00,  0.00,  0.00,
+            8, 9, 10,     8, 10, 11,  // Top face
 
-		 	
-		 1.00,  0.00,  0.00,
-		 
-		 1.00,  0.00,  0.00,
-		 
-		 1.00,  0.00,  0.00,
-		 			 
-		 // BOTTOM FACE
-		 	
-		 1.00,  0.00,  1.00,
-		 
-		 1.00,  0.00,  1.00,
-		 
-		 1.00,  0.00,  1.00,
+            12, 13, 14,   12, 14, 15, // Bottom face
 
-		 	
-		 1.00,  0.00,  1.00,
-		 
-		 1.00,  0.00,  1.00,
-		 
-		 1.00,  0.00,  1.00,
-		 			 
-		 // LEFT FACE
-		 	
-		 1.00,  0.00,  0.00,
-		 
-		 1.00,  0.00,  0.00,
-		 
-		 1.00,  0.00,  0.00,
+            16, 17, 18,   16, 18, 19, // Right face
 
-		 	
-		 1.00,  0.00,  0.00,
-		 
-		 1.00,  0.00,  0.00,
-		 
-		 1.00,  0.00,  0.00,
-		 			 
-		 // RIGHT FACE
-		 	
-		 1.00,  0.00,  1.00,
-		 
-		 1.00,  0.00,  1.00,
-		 
-		 1.00,  0.00,  1.00,
-
-		 	
-		 1.00,  0.00,  1.00,
-		 
-		 1.00,  0.00,  1.00,
-		 
-		 1.00,  0.00,  1.00,
-		 			 
-		 			 
-		 // BACK FACE
-		 	
-		 1.00,  0.00,  0.00,
-		 
-		 1.00,  0.00,  0.00,
-		 
-		 1.00,  0.00,  0.00,
-
-		 	
-		 1.00,  0.00,  0.00,
-		 
-		 1.00,  0.00,  0.00,
-		 
-		 1.00,  0.00,  0.00,			 			 
+            20, 21, 22,   20, 22, 23  // Left face
 ];
+
+// Texture coordinates for the quadrangular faces
+
+var textureCoords = [
+
+          // Front face
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+
+          // Back face
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+
+          // Top face
+          0.0, 1.0,
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+
+          // Bottom face
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+          1.0, 0.0,
+
+          // Right face
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+
+          // Left face
+          0.0, 0.0,
+          1.0, 0.0,
+          1.0, 1.0,
+          0.0, 1.0,
+];
+
+// Sounds
+
+var introSound = new Audio('assets/intro.wav');
+var eatingSound = new Audio('assets/eating.wav');
+var eatGhostSound = new Audio('assets/eat-ghost.wav');
+var deathSound = new Audio('assets/death.wav');
+var winSound = new Audio('assets/win.wav');
+var superModeSound = new Audio('assets/super-mode.wav');
 
 //----------------------------------------------------------------------------
 //
@@ -252,37 +164,99 @@ var colors = [
 //  Rendering
 //
 
+function handleLoadedTexture(texture) {
+	
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
+
+var wallTexture;
+var foodTexture;
+var superFoodTexture;
+var pacmanTexture;
+var ghostTexture;
+
+function initTexture() {
+	
+	// Wall texture
+	wallTexture = gl.createTexture();
+	wallTexture.image = new Image();
+	wallTexture.image.onload = function () {
+		handleLoadedTexture(wallTexture)
+	}
+
+	wallTexture.image.src = "assets/wall.jpg";
+
+	// Food texture
+	foodTexture = gl.createTexture();
+	foodTexture.image = new Image();
+	foodTexture.image.onload = function () {
+		handleLoadedTexture(foodTexture)
+	}
+
+	foodTexture.image.src = "assets/food.png";
+
+	// Super food texture
+	superFoodTexture = gl.createTexture();
+	superFoodTexture.image = new Image();
+	superFoodTexture.image.onload = function () {
+		handleLoadedTexture(superFoodTexture)
+	}
+
+	superFoodTexture.image.src = "assets/super-food.png";
+
+	// Pacman texture
+	pacmanTexture = gl.createTexture();
+	pacmanTexture.image = new Image();
+	pacmanTexture.image.onload = function () {
+		handleLoadedTexture(pacmanTexture)
+	}
+
+	pacmanTexture.image.src = "assets/pacman.png";
+
+	// Ghost texture
+	ghostTexture = gl.createTexture();
+	ghostTexture.image = new Image();
+	ghostTexture.image.onload = function () {
+		handleLoadedTexture(ghostTexture)
+	}
+
+	ghostTexture.image.src = "assets/ghost.png";
+}
+
+
 // Handling the Vertex and the Color Buffers
 
 function initCubeBuffer() {	
 	
 	// Coordinates
 		
-	triangleVertexPositionBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexPositionBuffer);
+	cubeVertexPositionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-	triangleVertexPositionBuffer.itemSize = 3;
-	triangleVertexPositionBuffer.numItems = vertices.length / 3;			
+	cubeVertexPositionBuffer.itemSize = 3;
+	cubeVertexPositionBuffer.numItems = vertices.length / 3;			
 
-	// Associating to the vertex shader
-	
-	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 
-			triangleVertexPositionBuffer.itemSize, 
-			gl.FLOAT, false, 0, 0);
-	
-	// Colors
+	// Textures
 		
-	triangleVertexColorBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexColorBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-	triangleVertexColorBuffer.itemSize = 3;
-	triangleVertexColorBuffer.numItems = colors.length / 3;			
+    cubeVertexTextureCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+ 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+    cubeVertexTextureCoordBuffer.itemSize = 2;
+    cubeVertexTextureCoordBuffer.numItems = 24;				
 
-	// Associating to the vertex shader
+	// Vertex indices
 	
-	gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, 
-			triangleVertexColorBuffer.itemSize, 
-			gl.FLOAT, false, 0, 0);
+    cubeVertexIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
+    cubeVertexIndexBuffer.itemSize = 1;
+    cubeVertexIndexBuffer.numItems = 36;
 }
 
 //----------------------------------------------------------------------------
@@ -293,8 +267,7 @@ function drawModel( angleXX, angleYY, angleZZ,
 					sx, sy, sz,
 					tx, ty, tz,
 					mvMatrix,
-					primitiveType,
-					buffer ) {
+					texture) {
 
 
     // Pay attention to transformation order !!
@@ -315,9 +288,26 @@ function drawModel( angleXX, angleYY, angleZZ,
 	
 	gl.uniformMatrix4fv(mvUniform, false, new Float32Array(flatten(mvMatrix)));
 	
+	// Passing the buffers
+    	
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+    
+    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+    gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, cubeVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    gl.uniform1i(shaderProgram.samplerUniform, 0);
+
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+
 	// Drawing the contents of the vertex buffer
 
-	gl.drawArrays(primitiveType, 0, buffer.numItems);
+	gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);	
 }
 
 //----------------------------------------------------------------------------
@@ -359,6 +349,7 @@ var field = {
 
 var score = 0;
 var gameOver = false;
+var gameWin = false;
 var superMode = false;
 var remainingFood = 0;
 
@@ -505,10 +496,11 @@ function computeAllMoves(structure, field) {
 	}
 }
 
-function endGame(won) {
+function endGame(won, sound) {
 
 	// Disable keyboard movements and stop pacman
 	gameOver = true;
+	gameWin = won;
 	pacman.updateDirection(0, 0, pacman.key);
 
 	// Disable ghost movements
@@ -520,6 +512,8 @@ function endGame(won) {
 
 	document.getElementById('result').innerHTML = result + " Score : " + score;
 	document.getElementById('score').innerHTML = "";
+
+	sound.play();
 }
 
 function movePacman() {
@@ -553,17 +547,21 @@ function movePacman() {
 	if (pacman.currentBlock.type == 'f') {
 		// Eat the food
 		pacman.currentBlock.type = '';
-		
+		eatingSound.play();
+
 		// Update score and remaining food
 		score++;
 		remainingFood--;
 	} else if (pacman.currentBlock.type == 's') {
 		// Eat the food
 		pacman.currentBlock.type = '';
+		eatingSound.play();
 
 		// Update score and remaining food
 		score += 10;
 		remainingFood--;
+
+		superModeSound.play();
 
 		// Activate super mode during fifteen seconds
 		superMode = true;
@@ -582,8 +580,8 @@ function movePacman() {
 	}
 
 	// If there isn't more food, the user wins
-	if (remainingFood == 1)
-		endGame(true);
+	if (remainingFood == 1 && !gameOver)
+		endGame(true, winSound);
 }
 
 function moveGhost(ghost) {
@@ -615,12 +613,14 @@ function moveGhost(ghost) {
 	// Check collisions with pacman
 	if (Math.abs(ghost.x.toFixed(1)-pacman.x.toFixed(1)) < field.xBlockSize && Math.abs(ghost.z.toFixed(1)-pacman.z.toFixed(1)) < field.zBlockSize) {
 		if(superMode) {
+			// Eat ghost. Kill it
 			var idx = ghosts.indexOf(ghost);
 			ghosts.splice(idx, 1);
 			score += 100;
-		} else
+			eatGhostSound.play();
+		} else if (!gameWin && !gameOver)
 			// Lost game
-			endGame(false);
+			endGame(false, deathSound);
 	}
 
 	// Update current position, if possible
@@ -661,8 +661,6 @@ function drawScene() {
 }
 
 function drawChar(character) {
-
-	initCubeBuffer();
 	
 	var pMatrix;
 	
@@ -682,17 +680,18 @@ function drawChar(character) {
 	mvMatrix = mult( mvMatrix, rotationYYMatrix( globalYY ) );
 	mvMatrix = mult( mvMatrix, rotationXXMatrix( globalXX ) );
 
+	// Verify if it is the pacman, to draw the correct texture
+	var texture = character.id == 'Pac' ? pacmanTexture : ghostTexture;
+
 	// Instantianting the current model
 	drawModel( angleXX, angleYY, angleZZ, 
 	           sx, sy, sz,
 	           character.x - (field.width / 2), ty, character.z - (field.height / 2),
 	           mvMatrix,
-	           primitiveType,
-	           triangleVertexPositionBuffer );
+	           texture);
 }
 
 function drawField() {
-	initCubeBuffer();
 
 	var pMatrix;
 			
@@ -717,24 +716,21 @@ function drawField() {
 				           sx, sy, sz,
 				           (j * field.xBlockSize) - tx, 0, (i * field.xBlockSize * field.zBlockSize) - tz,
 				           mvMatrix,
-				           primitiveType,
-				           triangleVertexPositionBuffer );
+				           wallTexture);
 			} else if (field.structure[i][j].type == 'f') {
 				scale = 0.4;
 				drawModel( angleXX, angleYY, angleZZ, 
 				           sx - scale, sy - scale, sz - scale,
 				           (j * field.xBlockSize) - tx, 0, (i * field.xBlockSize * field.zBlockSize) - tz,
 				           mvMatrix,
-				           primitiveType,
-				           triangleVertexPositionBuffer );
+				           foodTexture);
 			} else if (field.structure[i][j].type == 's') {
 				scale = 0.3;
 				drawModel( angleXX, angleYY, angleZZ, 
 				           sx - scale, sy - scale, sz - scale,
 				           (j * field.xBlockSize) - tx, 0, (i * field.xBlockSize * field.zBlockSize) - tz,
 				           mvMatrix,
-				           primitiveType,
-				           triangleVertexPositionBuffer );
+				           superFoodTexture);
 			}
 		}
 	}	
@@ -863,15 +859,21 @@ function runWebGL() {
 	
 	setEventListeners();
 	
+	/*
 	// Transform cube into sphere
 
-	/*centroidRefinement( vertices, colors, 6 );
+	centroidRefinement( vertices, colors, 6 );
     
- 	moveToSphericalSurface( vertices );*/
-	
-    initField();
-	
-	drawScene();
+ 	moveToSphericalSurface( vertices );
+	*/
 
+	initCubeBuffer();
+
+	initTexture();
+
+    initField();
+
+	introSound.play();
+	
 	tick();   
 }
