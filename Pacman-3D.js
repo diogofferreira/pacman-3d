@@ -13,6 +13,8 @@ var cubeVertexColorBuffer = null;
 
 var cubeVertexIndexBuffer = null;
 
+var cubeVertexNormalBuffer = null;
+
 // Global transformations
 
 globalTz = -25.0;
@@ -50,100 +52,135 @@ var sz = 0.5;
 // For storing the vertices defining the vertices
 
 vertices = [
-            // Front face
-            -1.0, -1.0,  1.0,
-             1.0, -1.0,  1.0,
-             1.0,  1.0,  1.0,
-            -1.0,  1.0,  1.0,
+	// Front face
+	-1.0, -1.0,  1.0,
+	 1.0, -1.0,  1.0,
+	 1.0,  1.0,  1.0,
+	-1.0,  1.0,  1.0,
 
-            // Back face
-            -1.0, -1.0, -1.0,
-            -1.0,  1.0, -1.0,
-             1.0,  1.0, -1.0,
-             1.0, -1.0, -1.0,
+	// Back face
+	-1.0, -1.0, -1.0,
+	-1.0,  1.0, -1.0,
+	 1.0,  1.0, -1.0,
+	 1.0, -1.0, -1.0,
 
-            // Top face
-            -1.0,  1.0, -1.0,
-            -1.0,  1.0,  1.0,
-             1.0,  1.0,  1.0,
-             1.0,  1.0, -1.0,
+	// Top face
+	-1.0,  1.0, -1.0,
+	-1.0,  1.0,  1.0,
+	 1.0,  1.0,  1.0,
+	 1.0,  1.0, -1.0,
 
-            // Bottom face
-            -1.0, -1.0, -1.0,
-             1.0, -1.0, -1.0,
-             1.0, -1.0,  1.0,
-            -1.0, -1.0,  1.0,
+	// Bottom face
+	-1.0, -1.0, -1.0,
+	 1.0, -1.0, -1.0,
+	 1.0, -1.0,  1.0,
+	-1.0, -1.0,  1.0,
 
-            // Right face
-             1.0, -1.0, -1.0,
-             1.0,  1.0, -1.0,
-             1.0,  1.0,  1.0,
-             1.0, -1.0,  1.0,
+	// Right face
+	 1.0, -1.0, -1.0,
+	 1.0,  1.0, -1.0,
+	 1.0,  1.0,  1.0,
+	 1.0, -1.0,  1.0,
 
-            // Left face
-            -1.0, -1.0, -1.0,
-            -1.0, -1.0,  1.0,
-            -1.0,  1.0,  1.0,
-            -1.0,  1.0, -1.0
+	// Left face
+	-1.0, -1.0, -1.0,
+	-1.0, -1.0,  1.0,
+	-1.0,  1.0,  1.0,
+	-1.0,  1.0, -1.0
 ];
 
 // Vertex indices defining the triangles
         
 var cubeVertexIndices = [
 
-            0, 1, 2,      0, 2, 3,    // Front face
+	0, 1, 2,      0, 2, 3,    // Front face
 
-            4, 5, 6,      4, 6, 7,    // Back face
+	4, 5, 6,      4, 6, 7,    // Back face
 
-            8, 9, 10,     8, 10, 11,  // Top face
+	8, 9, 10,     8, 10, 11,  // Top face
 
-            12, 13, 14,   12, 14, 15, // Bottom face
+	12, 13, 14,   12, 14, 15, // Bottom face
 
-            16, 17, 18,   16, 18, 19, // Right face
+	16, 17, 18,   16, 18, 19, // Right face
 
-            20, 21, 22,   20, 22, 23  // Left face
+	20, 21, 22,   20, 22, 23  // Left face
 ];
 
 // Texture coordinates for the quadrangular faces
 
 var textureCoords = [
 
-          // Front face
-          0.0, 0.0,
-          1.0, 0.0,
-          1.0, 1.0,
-          0.0, 1.0,
+	// Front face
+	0.0, 0.0,
+	1.0, 0.0,
+	1.0, 1.0,
+	0.0, 1.0,
 
-          // Back face
-          1.0, 0.0,
-          1.0, 1.0,
-          0.0, 1.0,
-          0.0, 0.0,
+	// Back face
+	1.0, 0.0,
+	1.0, 1.0,
+	0.0, 1.0,
+	0.0, 0.0,
 
-          // Top face
-          0.0, 1.0,
-          0.0, 0.0,
-          1.0, 0.0,
-          1.0, 1.0,
+	// Top face
+	0.0, 1.0,
+	0.0, 0.0,
+	1.0, 0.0,
+	1.0, 1.0,
 
-          // Bottom face
-          1.0, 1.0,
-          0.0, 1.0,
-          0.0, 0.0,
-          1.0, 0.0,
+	// Bottom face
+	1.0, 1.0,
+	0.0, 1.0,
+	0.0, 0.0,
+	1.0, 0.0,
 
-          // Right face
-          1.0, 0.0,
-          1.0, 1.0,
-          0.0, 1.0,
-          0.0, 0.0,
+	// Right face
+	1.0, 0.0,
+	1.0, 1.0,
+	0.0, 1.0,
+	0.0, 0.0,
 
-          // Left face
-          0.0, 0.0,
-          1.0, 0.0,
-          1.0, 1.0,
-          0.0, 1.0,
+	// Left face
+	0.0, 0.0,
+	1.0, 0.0,
+	1.0, 1.0,
+	0.0, 1.0,
 ];
+
+// Vertex normals
+
+var normals = [    
+	0.0, 0.0, 1.0,   0.0, 0.0, 1.0,   0.0, 0.0, 1.0,   0.0, 0.0, 1.0,  //v0-v1-v2-v3 front
+	1.0, 0.0, 0.0,   1.0, 0.0, 0.0,   1.0, 0.0, 0.0,   1.0, 0.0, 0.0,  //v0-v3-v4-v5 right
+	0.0, 1.0, 0.0,   0.0, 1.0, 0.0,   0.0, 1.0, 0.0,   0.0, 1.0, 0.0,  //v0-v5-v6-v1 up
+   -1.0, 0.0, 0.0,  -1.0, 0.0, 0.0,  -1.0, 0.0, 0.0,  -1.0, 0.0, 0.0,  //v1-v6-v7-v2 left
+	0.0,-1.0, 0.0,   0.0,-1.0, 0.0,   0.0,-1.0, 0.0,   0.0,-1.0, 0.0,  //v7-v4-v3-v2 down
+	0.0, 0.0,-1.0,   0.0, 0.0,-1.0,   0.0, 0.0,-1.0,   0.0, 0.0,-1.0   //v4-v7-v6-v5 back
+];
+
+// The viewer position
+
+// It has to be updated according to the projection type
+
+var pos_Viewer = [ 0.0, 0.0, 0.0, 1.0 ];
+
+// Model Material Features
+
+// Ambient coef.
+
+var kAmbi = [0.2, 0.2, 0.2];
+
+// Diffuse coef.
+
+var kDiff = [0.7, 0.7, 0.7];
+
+// Specular coef.
+
+var kSpec = [0.7, 0.7, 0.7];
+
+// Phong coef.
+
+var nPhong = 100;
 
 // Sounds
 
@@ -257,6 +294,14 @@ function initCubeBuffer() {
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
     cubeVertexIndexBuffer.itemSize = 1;
     cubeVertexIndexBuffer.numItems = 36;
+
+	// Vertex Normal Vectors
+		
+	cubeVertexNormalBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexNormalBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+	cubeVertexNormalBuffer.itemSize = 3;
+	cubeVertexNormalBuffer.numItems = normals.length / 3;
 }
 
 //----------------------------------------------------------------------------
@@ -291,29 +336,50 @@ function drawModel( angleXX, angleYY, angleZZ,
 	// Passing the buffers
     	
 	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
-    
     gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
     gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, cubeVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexNormalBuffer);
+    gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, cubeVertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    // Material properties
+	
+	gl.uniform3fv(gl.getUniformLocation(shaderProgram, "k_ambient"), flatten(kAmbi));
+    
+    gl.uniform3fv(gl.getUniformLocation(shaderProgram, "k_diffuse"), flatten(kDiff));
+    
+    gl.uniform3fv(gl.getUniformLocation(shaderProgram, "k_specular"), flatten(kSpec));
+
+	gl.uniform1f(gl.getUniformLocation(shaderProgram, "shininess"), nPhong);
+
+    // Light Sources
+		
+	gl.uniform1i(gl.getUniformLocation(shaderProgram, "numLights"), lightSources.length);
+	
+	for(var i = 0; i < lightSources.length ; i++ )
+	{
+		gl.uniform4fv(gl.getUniformLocation(shaderProgram, "allLights[" + String(i) + "].position"), flatten(lightSources[i].getPosition()));
+    
+		gl.uniform3fv(gl.getUniformLocation(shaderProgram, "allLights[" + String(i) + "].intensities"), flatten(lightSources[i].getIntensity()));
+    }
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
     gl.uniform1i(shaderProgram.samplerUniform, 0);
 
-
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
 
 	// Drawing the contents of the vertex buffer
-
+	
 	gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);	
 }
 
 //----------------------------------------------------------------------------
 
 // Field Handling
-
 
 // w -> wall; f -> food; s -> super-food
 var w = 'w';
@@ -374,7 +440,7 @@ function character(id) {
 	this.currentBlock = {};	// Reference to the current block
 	this.id = id;			// Character identificator
 
-	//Initialize parameters for character
+	// Initialize parameters for character
 	this.init = function(x, z) {
 		
 		var i = parseInt(x + (field.width / 2));
@@ -563,6 +629,8 @@ function movePacman() {
 
 		superModeSound.play();
 
+		switchSuperModeLight(true);
+
 		// Activate super mode during fifteen seconds
 		superMode = true;
 
@@ -571,10 +639,12 @@ function movePacman() {
 	        counter--;
 	        if (counter === 0) {
 	            superMode = false;
+        		switchSuperModeLight(false);
+
 				document.getElementById('super-mode').innerHTML = "";
 	            clearInterval(interval);
 	            return;
-	        } else
+	        } else 
 				document.getElementById('super-mode').innerHTML = "SUPER MODE ending in " + counter + " seconds";
     	}, 1000);
 	}
@@ -645,41 +715,67 @@ function moveGhost(ghost) {
 
 function drawScene() {
 	
-	// Clear color buffer
-	gl.clear(gl.COLOR_BUFFER_BIT);
-	
-	drawField();
+	var mvMatrix = mat4();
 
-	drawChar(pacman);
+	// Clear color buffer
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	
+	// Computing the perspective matrix
+	var pMatrix = perspective( 45, 1, 0.05, 50 );
+
+	// The viewer is on (0,0,0)
+	pos_Viewer[0] = pos_Viewer[1] = pos_Viewer[2] = 0.0;	
+	pos_Viewer[3] = 1.0;  
+	
+	// Passing the Projection Matrix to apply the current projection
+	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+	
+	gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
+
+	// Passing the viewer position to the vertex shader
+	gl.uniform4fv( gl.getUniformLocation(shaderProgram, "viewerPosition"), flatten(pos_Viewer));
+
+	// Global transformations
+	mvMatrix = translationMatrix( 0, 0, globalTz );
+	mvMatrix = mult( mvMatrix, rotationYYMatrix( globalYY ) );
+	mvMatrix = mult( mvMatrix, rotationXXMatrix( globalXX ) );
+	
+	// Updating the position of the light sources, if required
+	for(var i = 0; i < lightSources.length; i++ )
+	{
+		if( lightSources[i].isOff())
+			continue;
+
+		// Animating the light source, if defined
+		var lightSourceMatrix = mat4();
+		    		    
+		if( lightSources[i].isRotYYOn() ) 
+		{
+			lightSourceMatrix = mult( 
+					lightSourceMatrix, 
+					rotationYYMatrix( lightSources[i].getRotAngleYY() ) );
+		}
+
+		// Passing the Light Source Matrix to apply
+		var lsmUniform = gl.getUniformLocation(shaderProgram, "allLights["+ String(i) + "].lightSourceMatrix");
+		gl.uniformMatrix4fv(lsmUniform, false, new Float32Array(flatten(lightSourceMatrix)));
+	}
+
+	// Draw models
+	drawField(mvMatrix);
+
+	drawChar(pacman, mvMatrix);
 
 	for(var i = 0; i < ghosts.length; i++)
-		drawChar(ghosts[i]);
+		drawChar(ghosts[i], mvMatrix);
 
 	// Update page's score
 	if (!gameOver)
 		document.getElementById('score').innerHTML = "Score : " + score;
 }
 
-function drawChar(character) {
+function drawChar(character, mvMatrix) {
 	
-	var pMatrix;
-	
-	var mvMatrix = mat4();
-		
-	// Computing the perspective matrix
-	
-	pMatrix = perspective( 45, 1, 0.05, 50 );
-	
-	// Passing the Projection Matrix to apply the current projection
-	
-	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-	
-	gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
-
-	mvMatrix = translationMatrix( 0, 0, globalTz );
-	mvMatrix = mult( mvMatrix, rotationYYMatrix( globalYY ) );
-	mvMatrix = mult( mvMatrix, rotationXXMatrix( globalXX ) );
-
 	// Verify if it is the pacman, to draw the correct texture
 	var texture = character.id == 'Pac' ? pacmanTexture : ghostTexture;
 
@@ -691,24 +787,9 @@ function drawChar(character) {
 	           texture);
 }
 
-function drawField() {
+function drawField(mvMatrix) {
 
-	var pMatrix;
-			
-	// Computing the perspective matrix
-	
-	pMatrix = perspective( 45, 1, 0.05, 50 );
-
-	// Passing the Projection Matrix to apply the current projection
-	
-	var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-	
-	gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
-
-	mvMatrix = translationMatrix( 0, 0, globalTz );
-	mvMatrix = mult( mvMatrix, rotationYYMatrix( globalYY ) );
-	mvMatrix = mult( mvMatrix, rotationXXMatrix( globalXX ) );
-	
+	// Draw all field models
 	for (var i = 0; i < field.height; i++) {
 		for (var j = 0; j < field.width; j++) {
 			if (field.structure[i][j].type == 'w') {
@@ -736,6 +817,32 @@ function drawField() {
 	}	
 }
 
+// Animation --- Updating transformation parameters
+
+var lastTime = 0;
+
+function animate() {
+	
+	var timeNow = new Date().getTime();
+	
+	if( lastTime != 0 ) {
+		
+		var elapsed = timeNow - lastTime;
+		
+		// Rotating the light sources
+	
+		for(var i = 0; i < lightSources.length; i++ )
+	    {
+			if( lightSources[i].isRotYYOn() ) {
+				var angle = lightSources[i].getRotAngleYY() + lightSources[i].getRotationSpeed() * (90 * elapsed) / 1000.0;
+				lightSources[i].setRotAngleYY( angle );
+			}
+		}
+	}
+	
+	lastTime = timeNow;
+}
+
 // Timer
 
 function tick() {
@@ -748,7 +855,9 @@ function tick() {
 		moveGhost(ghosts[i]);
 
 	// Render the viewport
-	drawScene(); 
+	drawScene();
+
+	animate();
 }
 
 //----------------------------------------------------------------------------
@@ -779,7 +888,7 @@ function setEventListeners(){
 	});
 
 	// Handle zoom with mouse scroll
-	document.addEventListener('mousewheel',function(event){
+	document.addEventListener('wheel',function(event){
 		globalTz += event.deltaY > 0 ? 1 : -1;
 		drawScene(); 
 	});
@@ -824,10 +933,10 @@ function initWebGL( canvas ) {
 	try {
 		
 		// Create the WebGL context
-		
-		// Some browsers still need "experimental-webgl"
-		
+				
 		gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+		
+		// Viewport with black background
 		
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
 

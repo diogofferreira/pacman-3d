@@ -83,6 +83,11 @@ function initShaders( gl ) {
     // The sampler
     
     shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
+
+	// Vertex Normals 
+	
+	shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "vNormal");
+	gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
 	
 	return shaderProgram;
 }
