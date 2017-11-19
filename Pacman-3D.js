@@ -149,7 +149,8 @@ var textureCoords = [
 
 // Vertex normals
 
-var normals = [    
+var normals = [
+
 	0.0, 0.0, 1.0,   0.0, 0.0, 1.0,   0.0, 0.0, 1.0,   0.0, 0.0, 1.0,  //v0-v1-v2-v3 front
 	1.0, 0.0, 0.0,   1.0, 0.0, 0.0,   1.0, 0.0, 0.0,   1.0, 0.0, 0.0,  //v0-v3-v4-v5 right
 	0.0, 1.0, 0.0,   0.0, 1.0, 0.0,   0.0, 1.0, 0.0,   0.0, 1.0, 0.0,  //v0-v5-v6-v1 up
@@ -191,6 +192,14 @@ var deathSound = new Audio('assets/death.wav');
 var winSound = new Audio('assets/win.wav');
 var superModeSound = new Audio('assets/super-mode.wav');
 
+// Textures
+
+var wallTexture;
+var foodTexture;
+var superFoodTexture;
+var pacmanTexture;
+var ghostTexture;
+
 //----------------------------------------------------------------------------
 //
 // The WebGL code
@@ -210,13 +219,6 @@ function handleLoadedTexture(texture) {
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 	gl.bindTexture(gl.TEXTURE_2D, null);
 }
-
-
-var wallTexture;
-var foodTexture;
-var superFoodTexture;
-var pacmanTexture;
-var ghostTexture;
 
 function initTexture() {
 	
@@ -381,22 +383,43 @@ function drawModel( angleXX, angleYY, angleZZ,
 
 // Field Handling
 
-// w -> wall; f -> food; s -> super-food
+// w -> wall; f -> food; s -> super-food; p -> portal
 var w = 'w';
 var f = 'f';
 var s = 's';
+var p = 'p';
 var field_structure = [
-	[w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w],
+	[w,w,w,w,w,p,w,w,w,w,w,w,w,w,w,w,w,w,w],
 	[w,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,w],
 	[w,f,w,w,w,w,w,w,f,w,f,w,w,w,w,w,w,f,w], 
 	[w,f,f,f,f,w,f,f,f,w,f,f,f,w,f,f,f,f,w], 
 	[w,w,f,w,f,w,f,w,w,w,w,w,f,w,f,w,f,w,w], 
-	[w,f,f,w,f,f,f,f,f,s,f,f,f,f,f,w,f,f,w], 
+	[w,f,f,w,f,f,f,f,f,s,f,f,f,f,s,w,f,f,p], 
 	[w,f,w,w,f,w,w,w,f,w,f,w,w,w,f,w,w,f,w], 
-	[w,f,f,f,f,f,f,f,f,w,f,f,f,f,f,f,f,f,w], 
+	[p,f,f,f,f,f,f,f,f,w,f,f,f,f,f,f,f,f,w], 
 	[w,f,w,w,f,w,f,w,w,w,w,w,f,w,f,w,w,f,w], 
 	[w,f,f,s,f,w,f,f,f,f,f,f,f,w,f,f,f,f,w], 
-	[w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w,w]
+	[w,w,w,w,w,w,w,w,w,w,p,w,w,w,w,w,w,w,w]
+];
+
+var possibleMoves = [
+	{
+		'x' : 1,
+		'z' : 0,
+		'key': 39
+	},{
+		'x' : -1,
+		'z' : 0,
+		'key': 37
+	},{
+		'x' : 0,
+		'z' : 1,
+		'key': 40
+	},{
+		'x' : 0,
+		'z' : -1,
+		'key': 38
+	}
 ];
 
 var field = {
@@ -418,6 +441,7 @@ var gameOver = false;
 var gameWin = false;
 var superMode = false;
 var remainingFood = 0;
+var portals = [];
 
 var pacman;
 var ghosts = [];
@@ -439,6 +463,7 @@ function character(id) {
 	this.key = -1.0;
 	this.currentBlock = {};	// Reference to the current block
 	this.id = id;			// Character identificator
+	this.teleportation = false;
 
 	// Initialize parameters for character
 	this.init = function(x, z) {
@@ -517,6 +542,8 @@ function createFieldStructure(structure){
 			// Count food present on field
 			if (structure[i][j] == 'f' || structure[i][j] == 's')
 				remainingFood++;
+			else if (structure[i][j] == 'p')
+				portals.push(line[j]);
 		}
 		newField.push(line);
 		line = [];
@@ -534,28 +561,28 @@ function computeAllMoves(structure, field) {
 			if (i-1 >= 0) {
 				var up = field[i-1][j];
 				//Check if the block is food
-				if (up.type == 'f' || up.type == 's')
+				if (up.type == 'f' || up.type == 's' || up.type == 'p')
 					field[i][j].moves[38] = up;
 			}
 			// Down block
 			if (i+1 < height) {
 				var down = field[i+1][j];
 				//Check if the block is food
-				if (down.type == 'f' || down.type == 's')
+				if (down.type == 'f' || down.type == 's' || down.type == 'p')
 					field[i][j].moves[40] = down;
 			}
 			// Left block
 			if (j-1 >= 0) {
 				var left = field[i][j-1];
 				//Check if the block is food
-				if (left.type == 'f' || left.type == 's')
+				if (left.type == 'f' || left.type == 's' || left.type == 'p')
 					field[i][j].moves[37] = left;
 			}
 			// Right block
 			if (j+1 < width){
 				var right = field[i][j+1];
 				//Check if the block is food
-				if (right.type == 'f' || right.type == 's')
+				if (right.type == 'f' || right.type == 's' || right.type == 'p')
 					field[i][j].moves[39] = right;
 			}  			
 		}
@@ -608,6 +635,14 @@ function movePacman() {
 		// Stop if it is an invalid move
 		if (pacman.currentBlock.moves[pacman.key] == undefined)
 			pacman.updateDirection(0, 0, pacman.key);
+
+		// Handle portals
+		if (pacman.currentBlock.type == 'p') {
+			if (pacman.teleportation)
+				pacman.teleportation = false;
+			else
+				spawnInRandomPortal(pacman);
+		}
 	}
 	
 	if (pacman.currentBlock.type == 'f') {
@@ -627,26 +662,29 @@ function movePacman() {
 		score += 10;
 		remainingFood--;
 
-		superModeSound.play();
+		// Only enable super mode if it isn't already enabled
+		if (!superMode) {
+			switchSuperModeLight(true);
+			
+			superModeSound.play();
 
-		switchSuperModeLight(true);
+			counter = 15;
+			interval = setInterval(function() {
+		        counter--;
+		        if (counter === 0) {
+		            superMode = false;
+		    		switchSuperModeLight(false);
 
-		// Activate super mode during fifteen seconds
+					document.getElementById('super-mode').innerHTML = "";
+		            clearInterval(interval);
+		            return;
+		        } else 
+					document.getElementById('super-mode').innerHTML = "SUPER MODE ending in " + counter + " seconds";
+			}, 1000);
+		}
+
+		// Activate super mode
 		superMode = true;
-
-		counter = 15;
-		interval = setInterval(function() {
-	        counter--;
-	        if (counter === 0) {
-	            superMode = false;
-        		switchSuperModeLight(false);
-
-				document.getElementById('super-mode').innerHTML = "";
-	            clearInterval(interval);
-	            return;
-	        } else 
-				document.getElementById('super-mode').innerHTML = "SUPER MODE ending in " + counter + " seconds";
-    	}, 1000);
 	}
 
 	// If there isn't more food, the user wins
@@ -655,24 +693,6 @@ function movePacman() {
 }
 
 function moveGhost(ghost) {
-
-	var possibleMoves = [{
-		'x' : 1,
-		'z' : 0,
-		'key': 39
-	},{
-		'x' : -1,
-		'z' : 0,
-		'key': 37
-	},{
-		'x' : 0,
-		'z' : 1,
-		'key': 40
-	},{
-		'x' : 0,
-		'z' : -1,
-		'key': 38
-	}];
 
 	// Walk while not crashing
 	if (ghost.currentBlock.moves[ghost.key] != undefined) {
@@ -683,7 +703,7 @@ function moveGhost(ghost) {
 	// Check collisions with pacman
 	if (Math.abs(ghost.x.toFixed(1)-pacman.x.toFixed(1)) < field.xBlockSize && Math.abs(ghost.z.toFixed(1)-pacman.z.toFixed(1)) < field.zBlockSize) {
 		if(superMode) {
-			// Eat ghost. Kill it
+			// Kill ghost and eat him
 			var idx = ghosts.indexOf(ghost);
 			ghosts.splice(idx, 1);
 			score += 100;
@@ -707,8 +727,46 @@ function moveGhost(ghost) {
 			ghost.zDirection = newDirection['z'];
 			ghost.key = newDirection['key'];
 		}
+
+		// Handle portals
+		if (ghost.currentBlock.type == 'p') {
+			if (ghost.teleportation)
+				ghost.teleportation = false;
+			else
+				spawnInRandomPortal(ghost);
+		}
 	}
 }
+
+function spawnInRandomPortal(character) {
+	var nextPortal = null;
+
+	do {
+		nextPortal = portals[Math.floor(Math.random() * portals.length)];
+	} while(nextPortal == character.currentBlock)
+
+	// Change current block to new spawn block
+	character.currentBlock = nextPortal;
+
+	// Update position
+	character.x = nextPortal.x;
+	character.z = nextPortal.z;
+
+	// Update moves
+	var key = Object.keys(nextPortal.moves)[0];
+	possibleMoves.forEach(function(move) {
+    	if (move['key'] == key) {
+    		// Force direction change
+    		character.xDirection = move['x'];
+    		character.zDirection = move['z'];
+    		character.key = move['key'];
+		}
+	});
+
+	// Enable teleportation
+	character.teleportation = true;
+}
+
 //----------------------------------------------------------------------------
 
 //  Drawing the 3D scene
@@ -813,8 +871,8 @@ function drawField(mvMatrix) {
 				           mvMatrix,
 				           superFoodTexture);
 			}
-		}
-	}	
+		}	
+	}
 }
 
 // Animation --- Updating transformation parameters
