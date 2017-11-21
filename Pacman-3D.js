@@ -51,7 +51,7 @@ var sz = 0.5;
 
 // For storing the vertices defining the vertices
 
-vertices = [
+var vertices = [
     // Front face
     -1.0, -1.0,  1.0,
      1.0, -1.0,  1.0,
@@ -529,9 +529,9 @@ function initField() {
     // Clear ghosts array
     ghosts = [];
     // Create ghosts and render them in a random position
-    ghosts.push(new character('G1'));
+    /*ghosts.push(new character('G1'));
     ghosts.push(new character('G2'));
-    ghosts.push(new character('G3'));
+    ghosts.push(new character('G3'));*/
 
     for (var i=0; i<ghosts.length; i++){
         var coordinates = randomCoordinates();
@@ -835,12 +835,20 @@ function drawScene() {
         if( lightSources[i].isOff())
             continue;
 
-        /*lightSources[i].setPosition(pacman.x - (field.width / 2), (field.height / 2) - pacman.z , 1.5, 0.0);
+        lightSources[i].setPosition(pacman.x - (field.width / 2),  pacman.z - (field.height / 2) , 1.5 , 0.0);
         lightSources[i].setAmbIntensity( 0.1, 0.1, 0.1 );
-        console.log(lightSources[i].getPosition(), pacman.x - (field.width / 2), pacman.z - (field.height / 2));*/
-
+        //console.log(lightSources[i].getPosition(), pacman.x - (field.width / 2), pacman.z - (field.height / 2));
+        
+        
+        // Draw de model in the light position
+        drawModel( 0, 0, 0, 
+                   1.0, 1.0, 1.0,
+                   pacman.x - (field.width / 2), 1.5, pacman.z - (field.height / 2),
+                   mvMatrix,
+                   pacmanTexture);
+        
         // Animating the light source, if defined
-        var lightSourceMatrix = mat4();
+        var lightSourceMatrix = mvMatrix;
                         
         if( lightSources[i].isRotYYOn() ) 
         {
