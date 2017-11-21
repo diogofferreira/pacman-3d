@@ -163,7 +163,7 @@ var lightSources = [];
 
 // Yellow light (Sun)
 var sunLight = new LightSource();
-sunLight.setPosition( 0.0, 0.0, 5.0, 0.0 );
+sunLight.setPosition( 0.0, 0.0, 1.0, 0.0 );
 sunLight.setIntensity( 1.0, 1.0, 0.0 );
 sunLight.setAmbIntensity( 0.8, 0.8, 0.0 );
 lightSources.push(sunLight);

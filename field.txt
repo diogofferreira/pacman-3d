@@ -1,0 +1,11 @@
+w,w,w,w,w,p,w,w,w,w,w,w,w,w,w,w,w,w,w,p,w,w,w
+w,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,w
+w,f,w,w,w,w,w,w,f,w,f,w,w,w,w,w,w,f,f,f,f,f,w 
+w,f,f,f,f,w,f,f,f,w,f,f,f,w,f,f,f,f,f,w,w,f,w 
+w,w,f,w,f,w,f,w,w,w,w,w,f,w,f,w,f,w,f,w,f,f,w 
+w,f,f,w,f,f,f,f,f,s,f,f,f,f,s,w,f,f,f,w,f,f,p 
+w,f,w,w,f,w,w,w,f,w,f,w,w,w,f,w,w,f,f,w,f,f,w 
+p,f,f,f,f,f,f,f,f,w,f,f,f,f,f,f,f,f,f,w,w,f,w 
+w,f,w,w,f,w,f,w,w,w,w,w,f,w,f,w,w,s,f,f,f,f,w
+w,f,f,s,f,w,f,f,f,f,f,f,f,w,f,f,f,f,f,f,f,f,w
+w,w,w,w,p,w,w,w,w,w,p,w,w,w,w,w,w,w,w,w,w,w,w

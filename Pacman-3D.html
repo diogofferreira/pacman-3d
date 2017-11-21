@@ -210,19 +210,42 @@
 </head>
 
 <body onload="runWebGL();" style="background: black;">
-
 	<div align="center">
 		<img src="assets/logo.gif" style="width:300px; height:150px;"/>
 	</div>
 
-	<div align="center">
-		<canvas id="my-canvas" style="border: none;" width="1024" height="900"></canvas>		
+	<div align="center" id="welcome-screen" style="display:block;color:white; width:900px; height:650px; border-style: solid; border-width:5px; border-radius: 25px; margin:0 auto;">
+		<br/>
+		<br/>
+		<br/>
+		<span style="font-size:25px;">
+			<u>INSTRUCTIONS</u>: 
+			<br/>
+			<br/>1. USE THE ARROWS TO MOVE THE PACMAN
+			<br/>
+			<br/>2. USE MOUSE DRAG TO CHANGE CAMERA POSITION
+			<br/>
+			<br/>3. USE MOUSE WHEEL TO ZOOM IN OR OUT
+			<br/>
+			<br/>4. IF YOU WANT TO USER A CUSTOM FIELD, UPLOAD A FILE BELOW WITH A
+			<br/> MATRIX M x N WITH f FOR FOOD, s FOR SUPER-FOOD, w FOR WALL AND p FOR PORTALS, SEPARATED BY COMMAS.
+		</span>
+		<br/>
+		<br/>
+		<br/>
+		<input type="file" id="file" name="file">
+		<br/>
+		<br/>
+		<span style="font-size:35px;color:yellow;">PRESS SPACE TO START!</span>
+	</div>
+
+	<div id="game" align="center" style="display:none;">
+		<canvas id="my-canvas" style="border: none;" width="800" height="600"></canvas>		
 
 		<h3 id="score" style="color:yellow;"></h3>
 		<h1 id="super-mode" style="color:red;"></h1>
 		<h1 id="result" style="color:yellow;"></h2>
 	</div>
-
 </body>
 
 </html>

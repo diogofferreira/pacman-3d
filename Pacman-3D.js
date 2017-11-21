@@ -17,7 +17,7 @@ var cubeVertexNormalBuffer = null;
 
 // Global transformations
 
-globalTz = -25.0;
+globalTz = -30.0;
 
 globalXX = 90.0;
 
@@ -394,7 +394,7 @@ var field_structure = [
 	[w,f,w,w,w,w,w,w,f,w,f,w,w,w,w,w,w,f,w], 
 	[w,f,f,f,f,w,f,f,f,w,f,f,f,w,f,f,f,f,w], 
 	[w,w,f,w,f,w,f,w,w,w,w,w,f,w,f,w,f,w,w], 
-	[w,f,f,w,f,f,f,f,f,s,f,f,f,f,s,w,f,f,p], 
+	[w,f,f,w,f,f,f,f,f,f,f,f,f,f,s,w,f,f,p], 
 	[w,f,w,w,f,w,w,w,f,w,f,w,w,w,f,w,w,f,w], 
 	[p,f,f,f,f,f,f,f,f,w,f,f,f,f,f,f,f,f,w], 
 	[w,f,w,w,f,w,f,w,w,w,w,w,f,w,f,w,w,f,w], 
@@ -428,7 +428,7 @@ var field = {
 	width: 		0,
 	xBlockSize: 1.0,
 	zBlockSize: 1.0,
-	speed:      0.05,
+	speed:      0.1,
 	init: function(structure, height, width){
 		this.structure 	= structure;
 		this.height = height;
@@ -513,12 +513,15 @@ function initField() {
 	// Compute all possible movements
 	computeAllMoves(field_structure, field.structure);
 
-	// Create pacman and render him in the center of the field
+	// Create pacman and render him in a random 
+	var pacCoords = randomCoordinates();
 	pacman = new character('Pac');
-	pacman.init(0.0, 0.0);
+	pacman.init(pacCoords['x'], pacCoords['z']);
 	// Eat the food under him
 	pacman.currentBlock.type = '';
 
+	// Clear ghosts array
+	ghosts = [];
 	// Create ghosts and render them in a random position
 	ghosts.push(new character('G1'));
 	ghosts.push(new character('G2'));
@@ -530,7 +533,7 @@ function initField() {
 	}
 }
 
-function createFieldStructure(structure){	
+function createFieldStructure(structure){
 	var width = structure[0].length;
 	var height = structure.length;
 	var newField = [];
@@ -804,6 +807,10 @@ function drawScene() {
 		if( lightSources[i].isOff())
 			continue;
 
+
+		/*lightSources[i].setPosition(pacman.x - (field.width / 2), (field.height / 2) - pacman.z , 0.5, 0.0);
+		superModeLightBlue.setAmbIntensity( 0.1, 0.1, 0.1 );*/
+
 		// Animating the light source, if defined
 		var lightSourceMatrix = mat4();
 		    		    
@@ -846,7 +853,6 @@ function drawChar(character, mvMatrix) {
 }
 
 function drawField(mvMatrix) {
-
 	// Draw all field models
 	for (var i = 0; i < field.height; i++) {
 		for (var j = 0; j < field.width; j++) {
@@ -962,6 +968,10 @@ function setEventListeners(){
 			key = -1;
 
 		switch(key){
+			// Space 
+			case 32:
+				setGameScreen();
+				break;
 			// Left
 			case 37 :
 				pacman.updateDirection(-1, 0, key);
@@ -980,6 +990,48 @@ function setEventListeners(){
 				break;
 		}
 	});
+
+	// Read field from file
+	document.getElementById("file").onchange = function(){
+		
+		var file = this.files[0];
+		
+		var reader = new FileReader();
+		
+		// Reste field structure
+		field_structure = [];
+
+		reader.onload = function(progressEvent){
+			
+			// Read rows and cols and build a field matrix
+			var rows = this.result.split('\n');
+
+			for(var i = 0; i < rows.length; i++ ) {
+				var col = rows[i].split(',');
+				// Ignore blank lines
+				if (col.length == 1)
+					continue;
+				var line = [];
+				for (var j = 0; j < col.length; j++)
+    				line.push(col[j].trim());
+				field_structure.push(line);
+				line = [];
+			}
+			
+			// Init field and game screen
+			initField();
+			setGameScreen();
+		};
+		
+		// Entire file read as a string
+		reader.readAsText(file);
+	}
+}
+
+// Enable game div
+function setGameScreen() {
+	document.getElementById("welcome-screen").style.display = "none";
+	document.getElementById("game").style.display = "block";
 }
 
 //----------------------------------------------------------------------------
@@ -1025,14 +1077,6 @@ function runWebGL() {
 	shaderProgram = initShaders( gl );
 	
 	setEventListeners();
-	
-	/*
-	// Transform cube into sphere
-
-	centroidRefinement( vertices, colors, 6 );
-    
- 	moveToSphericalSurface( vertices );
-	*/
 
 	initCubeBuffer();
 
