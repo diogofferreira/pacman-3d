@@ -988,6 +988,27 @@ function setEventListeners(){
 			case 40 : 
 				pacman.updateDirection(0, 1, key);
 				break;
+			// A
+			case 65:
+				globalYY -= 5.0;
+				drawScene(); 
+				break;
+			// D
+			case 68:
+				globalYY += 5.0;
+				drawScene(); 
+				break;
+			// S
+			case 83:
+				globalXX += 5.0;
+				drawScene(); 
+				break;
+			// W
+			case 87:
+				globalXX -= 5.0;
+				drawScene();
+				break;
+
 		}
 	});
 
@@ -1032,6 +1053,13 @@ function setEventListeners(){
 function setGameScreen() {
 	document.getElementById("welcome-screen").style.display = "none";
 	document.getElementById("game").style.display = "block";
+
+	// Start game rendering
+    initField();
+
+	introSound.play();
+	
+	tick();   
 }
 
 //----------------------------------------------------------------------------
@@ -1081,10 +1109,4 @@ function runWebGL() {
 	initCubeBuffer();
 
 	initTexture();
-
-    initField();
-
-	introSound.play();
-	
-	tick();   
 }
