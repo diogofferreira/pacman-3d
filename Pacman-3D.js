@@ -17,9 +17,9 @@ var cubeVertexNormalBuffer = null;
 
 // Global transformations
 
-globalTz = -30.0;
+globalTz = -28.0;
 
-globalXX = 90.0;
+globalXX = 70.0;
 
 globalYY = 0.0;
 
@@ -169,11 +169,11 @@ var pos_Viewer = [ 0.0, 0.0, 0.0, 1.0 ];
 
 // Ambient coef.
 
-var kAmbi = [0.4, 0.4, 0.4];
+var kAmbi = [0.8, 0.8, 0.8];
 
 // Diffuse coef.
 
-var kDiff = [0.4, 0.4, 0.4];
+var kDiff = [0.8, 0.8, 0.8];
 
 // Specular coef.
 
@@ -444,7 +444,7 @@ var superMode = false;
 var remainingFood = 0;
 var difficulty = 0;
 // Light threshold in hard mode
-var threshold = 3.0;
+var threshold = 4.0;
 var portals = [];
 
 var pacman;
@@ -704,7 +704,7 @@ function movePacman() {
         // Only enable super mode if it isn't already enabled
         if (!superMode) {
             // Switch threshold in shaders, in order to more field
-            gl.uniform1f(gl.getUniformLocation(shaderProgram, "threshold"), 2 * threshold);
+            gl.uniform1f(gl.getUniformLocation(shaderProgram, "threshold"), 1.5 * threshold);
             
             switchSuperModeLight(true);
 

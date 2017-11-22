@@ -163,10 +163,17 @@ var lightSources = [];
 
 // Yellow light (Sun)
 var sunLight = new LightSource();
-sunLight.setPosition( 0.0, 5.0, 0.0, 0.0 );
+sunLight.setPosition( 0.0, 5.0, -1.0, 0.0 );
 sunLight.setIntensity( 1.0, 1.0, 0.0 );
 sunLight.setAmbIntensity( 0.8, 0.8, 0.0 );
 lightSources.push(sunLight);
+
+// Yellow light (Sun)
+var sunLight1 = new LightSource();
+sunLight1.setPosition( 0.0, 5.0, 2.0, 0.0 );
+sunLight1.setIntensity( 1.0, 1.0, 0.0 );
+sunLight1.setAmbIntensity( 0.8, 0.8, 0.0 );
+lightSources.push(sunLight1);
 
 // Super mode light (Blue)
 var superModeLightBlue = new LightSource();
@@ -187,10 +194,11 @@ function switchSuperModeLight(enable) {
     if (enable) {
         // Enable super mode lights
         lightSources[0] = superModeLightRed;
-        lightSources.push(superModeLightBlue);
+        lightSources[1] = superModeLightBlue;
     } else {
         // Disable super mode lights
         lightSources = [];
         lightSources.push(sunLight);
+        lightSources.push(sunLight1);
     }
 }
