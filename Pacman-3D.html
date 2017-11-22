@@ -53,9 +53,16 @@
     uniform vec3 k_diffuse;
     
     uniform vec3 k_specular;
-    
+
     uniform float shininess;
-    
+
+    // Spotlight properties
+
+    uniform int difficulty;
+
+    uniform float threshold;
+
+
     void main(void) {
         
         // To allow seeing the points drawn
@@ -88,77 +95,83 @@
        
             fColor += ambient;
         
-           // Vector from vertex position to light source
+            // Vector from vertex position to light source
+
+            vec3 L, X;
+
+            // Check for directional light
     
-           vec3 L;
-        
-           // Check for directional light
-    
-           if(allLights[i].position.w == 0.0) 
+            if(allLights[i].position.w == 0.0) 
         
                 L = normalize( (allLights[i].lightSourceMatrix * allLights[i].position).xyz );
         
-           else 
-        
+            else {
+                X = (allLights[i].lightSourceMatrix * allLights[i].position).xyz - pos;
                 L = normalize( (allLights[i].lightSourceMatrix * allLights[i].position).xyz - pos );
-            
-           // Vector from the vertex position to the eye
-        
-           vec3 E;
-        
-           // The viewer is at the origin or at an indefinite distance
-           // On the ZZ axis
+            }
+
+            // Draw spotlight in hard difficulty (threshold = 3.0)
+
+            if (difficulty == 1 && sqrt(X[0] * X[0] + X[1] * X[1] + X[2] * X[2]) > threshold) 
+                continue;
+
+            // Vector from the vertex position to the eye
+
+            vec3 E;
+
+            // The viewer is at the origin or at an indefinite distance
+            // On the ZZ axis
         
            if(viewerPosition.w == 1.0) 
-        
+
                // At the origin
             
-               E = -normalize( pos );
-        
+                E = -normalize( pos );
+
            else 
-        
+
                // On the ZZ axis
             
-               E = vec3(0,0,1);
+                E = vec3(0,0,1);
             
-           // Halfway vector
-    
-           vec3 H = normalize( L + E );
+            // Halfway vector
 
-           // Transform vertex normal into eye coordinates
-    
-           vec4 N = normalize( uMVMatrix * vec4(vNormal, 0.0));
+            vec3 H = normalize( L + E );
 
-           // Compute terms in the illumination equation
-        
-           // Diffuse component 
-        
-           float dotProductLN = L[0] * N[0] + L[1] * N[1] + L[2] * N[2]; 
-        
-           float cosNL = max( dotProductLN, 0.0 );
-    
-           vec4  diffuse = vec4( k_diffuse * cosNL * allLights[i].intensities, 1.0 );
-        
-           // Specular component
+            // Transform vertex normal into eye coordinates
 
-           float dotProductNH = N[0] * H[0] + N[1] * H[1] + N[2] * H[2]; 
-        
-           float cosNH = pow( max( dotProductNH, 0.0 ), shininess );
-    
-           vec4  specular = vec4( k_specular * cosNH * allLights[i].intensities, 1.0 );
-    
-           if( dotProductLN < 0.0 ) {
-    
+            vec4 N = normalize( uMVMatrix * vec4(vNormal, 0.0));
+
+            // Compute terms in the illumination equation
+
+            // Diffuse component 
+
+            float dotProductLN = L[0] * N[0] + L[1] * N[1] + L[2] * N[2]; 
+
+            float cosNL = max( dotProductLN, 0.0 );
+
+            vec4  diffuse = vec4( k_diffuse * cosNL * allLights[i].intensities, 1.0 );
+
+            // Specular component
+
+            float dotProductNH = N[0] * H[0] + N[1] * H[1] + N[2] * H[2]; 
+
+            float cosNH = pow( max( dotProductNH, 0.0 ), shininess );
+
+            vec4  specular = vec4( k_specular * cosNH * allLights[i].intensities, 1.0 );
+
+            if( dotProductLN < 0.0 ) {
+
               specular = vec4(0.0, 0.0, 0.0, 1.0);
-           } 
+            } 
 
-           // Adding the components
-        
-           fColor += diffuse + specular;
-       }
-        
+            // Adding the components
+
+            fColor += diffuse + specular;
+        }
+
         // Converting the RGB color value to RGBA
-        
+
         vTextureCoord = aTextureCoord;
 
     }
@@ -216,8 +229,6 @@
 
     <div align="center" id="welcome-screen" style="display:block;color:white; width:900px; height:650px; border-style: solid; border-width:5px; border-radius: 25px; margin:0 auto;">
         <br/>
-        <br/>
-        <br/>
         <span style="font-size:25px;">
             <u>INSTRUCTIONS</u>: 
             <br/>
@@ -235,6 +246,13 @@
         <br/>
         <input type="file" id="file" name="file">
         <br/>
+        <h3 id="field-error" style="color:red;"></h3>
+        <br/>
+        GAME DIFFICULTY:
+        <select id="difficulty">
+            <option selected="selected" value="0">Easy</option>
+            <option value="1">Hard</option>
+        </select>
         <br/>
         <span style="font-size:35px;color:yellow;">PRESS SPACE TO START!</span>
     </div>

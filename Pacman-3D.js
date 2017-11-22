@@ -169,11 +169,11 @@ var pos_Viewer = [ 0.0, 0.0, 0.0, 1.0 ];
 
 // Ambient coef.
 
-var kAmbi = [0.2, 0.2, 0.2];
+var kAmbi = [0.4, 0.4, 0.4];
 
 // Diffuse coef.
 
-var kDiff = [0.7, 0.7, 0.7];
+var kDiff = [0.4, 0.4, 0.4];
 
 // Specular coef.
 
@@ -436,11 +436,15 @@ var field = {
     }
 }
 
+var started = false;
 var score = 0;
 var gameOver = false;
 var gameWin = false;
 var superMode = false;
 var remainingFood = 0;
+var difficulty = 0;
+// Light threshold in hard mode
+var threshold = 3.0;
 var portals = [];
 
 var pacman;
@@ -529,9 +533,9 @@ function initField() {
     // Clear ghosts array
     ghosts = [];
     // Create ghosts and render them in a random position
-    /*ghosts.push(new character('G1'));
+    ghosts.push(new character('G1'));
     ghosts.push(new character('G2'));
-    ghosts.push(new character('G3'));*/
+    ghosts.push(new character('G3'));
 
     for (var i=0; i<ghosts.length; i++){
         var coordinates = randomCoordinates();
@@ -626,10 +630,14 @@ function restartGame() {
     gameWin = false;
     superMode = false;
     remainingFood = 0;
-    
+
     // Restart game infos and super mode timer, if setted
     clearInterval(interval);
     switchSuperModeLight(false);
+
+    // Set normal light threshold again
+    gl.uniform1f(gl.getUniformLocation(shaderProgram, "threshold"), threshold);
+    
     document.getElementById('super-mode').innerHTML = "";
     document.getElementById('result').innerHTML = "";
     document.getElementById("restart").style.display = "none";
@@ -695,8 +703,11 @@ function movePacman() {
 
         // Only enable super mode if it isn't already enabled
         if (!superMode) {
-            switchSuperModeLight(true);
+            // Switch threshold in shaders, in order to more field
+            gl.uniform1f(gl.getUniformLocation(shaderProgram, "threshold"), 2 * threshold);
             
+            switchSuperModeLight(true);
+
             superModeSound.play();
 
             counter = 15;
@@ -705,6 +716,8 @@ function movePacman() {
                 if (counter === 0) {
                     superMode = false;
                     switchSuperModeLight(false);
+                    // Set normal light threshold again
+                    gl.uniform1f(gl.getUniformLocation(shaderProgram, "threshold"), threshold);
 
                     document.getElementById('super-mode').innerHTML = "";
                     clearInterval(interval);
@@ -830,32 +843,21 @@ function drawScene() {
     mvMatrix = mult( mvMatrix, rotationXXMatrix( globalXX ) );
     
     // Updating the position of the light sources, if required
-    for(var i = 0; i < lightSources.length; i++ )
+    for(var i = 0; i < lightSources.length; i++)
     {
-        if( lightSources[i].isOff())
+        if(lightSources[i].isOff())
             continue;
 
-        lightSources[i].setPosition(pacman.x - (field.width / 2),  pacman.z - (field.height / 2) , 1.5 , 0.0);
-        lightSources[i].setAmbIntensity( 0.1, 0.1, 0.1 );
-        //console.log(lightSources[i].getPosition(), pacman.x - (field.width / 2), pacman.z - (field.height / 2));
-        
-        
-        // Draw de model in the light position
-        drawModel( 0, 0, 0, 
-                   1.0, 1.0, 1.0,
-                   pacman.x - (field.width / 2), 1.5, pacman.z - (field.height / 2),
-                   mvMatrix,
-                   pacmanTexture);
+        if (difficulty) {
+            lightSources[i].setPosition(pacman.x - (field.width / 2),  2.5, pacman.z - (field.height / 2), 1.0);
+            lightSources[i].setAmbIntensity(0.0, 0.0, 0.0);
+        }  
         
         // Animating the light source, if defined
         var lightSourceMatrix = mvMatrix;
                         
-        if( lightSources[i].isRotYYOn() ) 
-        {
-            lightSourceMatrix = mult( 
-                    lightSourceMatrix, 
-                    rotationYYMatrix( lightSources[i].getRotAngleYY() ) );
-        }
+        if(lightSources[i].isRotZZOn()) 
+            lightSourceMatrix = mult(lightSourceMatrix, rotationZZMatrix(lightSources[i].getRotAngleZZ()));
 
         // Passing the Light Source Matrix to apply
         var lsmUniform = gl.getUniformLocation(shaderProgram, "allLights["+ String(i) + "].lightSourceMatrix");
@@ -933,9 +935,9 @@ function animate() {
     
         for(var i = 0; i < lightSources.length; i++ )
         {
-            if( lightSources[i].isRotYYOn() ) {
-                var angle = lightSources[i].getRotAngleYY() + lightSources[i].getRotationSpeed() * (90 * elapsed) / 1000.0;
-                lightSources[i].setRotAngleYY( angle );
+            if( lightSources[i].isRotZZOn() ) {
+                var angle = lightSources[i].getRotAngleZZ() + lightSources[i].getRotationSpeed() * (90 * elapsed) / 1000.0;
+                lightSources[i].setRotAngleZZ( angle );
             }
         }
     }
@@ -1006,7 +1008,8 @@ function setEventListeners(){
         switch(key){
             // Space 
             case 32:
-                setGameScreen();
+                if (!started)
+                    setGameScreen();
                 break;
             // Left
             case 37 :
@@ -1055,8 +1058,11 @@ function setEventListeners(){
         
         var reader = new FileReader();
         
-        // Reste field structure
-        field_structure = [];
+        // New field structure
+        new_structure = [];
+
+        var error = false;
+        var movingSpaces = 0;
 
         reader.onload = function(progressEvent){
             
@@ -1069,11 +1075,29 @@ function setEventListeners(){
                 if (col.length == 1)
                     continue;
                 var line = [];
-                for (var j = 0; j < col.length; j++)
-                    line.push(col[j].trim());
-                field_structure.push(line);
+                for (var j = 0; j < col.length; j++) {
+                    type = col[j].trim();
+                    // Check if there is unknown blocks
+                    if (type != 'w' && type != 'f' && type != 's' && type != 'p') {
+                        error = true;
+                        break;
+                    } else if (type == 'f' || type == 's' || type == 'p')
+                        movingSpaces++;
+                    line.push(type);
+                }
+
+                new_structure.push(line);
                 line = [];
             }
+
+            // Check if there is unknown blocks or space to spawn
+            if (error || !movingSpaces) {
+                document.getElementById("field-error").innerHTML = "The field is not valid ! Please follow the structure described above and leave space (food or portals) to spawn the chars";
+                return;
+            }
+
+            // Copy new field to the used one
+            field_structure = new_structure;
             
             // Init field and game screen
             initField();
@@ -1087,6 +1111,15 @@ function setEventListeners(){
 
 // Enable game div
 function setGameScreen() {
+    // Game is running
+    started = true;
+
+    // Set game difficulty (0 to normal, 1 to hard)
+    difficulty = parseInt(document.getElementById("difficulty").value);
+    gl.uniform1i(gl.getUniformLocation(shaderProgram, "difficulty"), difficulty);
+    gl.uniform1f(gl.getUniformLocation(shaderProgram, "threshold"), threshold);
+
+    // Set game screen
     document.getElementById("welcome-screen").style.display = "none";
     document.getElementById("game").style.display = "block";
 
