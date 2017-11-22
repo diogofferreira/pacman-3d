@@ -443,6 +443,8 @@ var gameWin = false;
 var superMode = false;
 var remainingFood = 0;
 var difficulty = 0;
+// Light threshold in hard mode
+var threshold = 3.0;
 var portals = [];
 
 var pacman;
@@ -628,10 +630,14 @@ function restartGame() {
     gameWin = false;
     superMode = false;
     remainingFood = 0;
-    
+
     // Restart game infos and super mode timer, if setted
     clearInterval(interval);
     switchSuperModeLight(false);
+
+    // Set normal light threshold again
+    gl.uniform1f(gl.getUniformLocation(shaderProgram, "threshold"), threshold);
+    
     document.getElementById('super-mode').innerHTML = "";
     document.getElementById('result').innerHTML = "";
     document.getElementById("restart").style.display = "none";
@@ -697,8 +703,8 @@ function movePacman() {
 
         // Only enable super mode if it isn't already enabled
         if (!superMode) {
-            // Switch mode in shaders, in order to see all field
-            gl.uniform1i(gl.getUniformLocation(shaderProgram, "difficulty"), 0);
+            // Switch threshold in shaders, in order to more field
+            gl.uniform1f(gl.getUniformLocation(shaderProgram, "threshold"), 2 * threshold);
             
             switchSuperModeLight(true);
 
@@ -710,8 +716,8 @@ function movePacman() {
                 if (counter === 0) {
                     superMode = false;
                     switchSuperModeLight(false);
-                    // Set difficulty level again
-                    gl.uniform1i(gl.getUniformLocation(shaderProgram, "difficulty"), difficulty);
+                    // Set normal light threshold again
+                    gl.uniform1f(gl.getUniformLocation(shaderProgram, "threshold"), threshold);
 
                     document.getElementById('super-mode').innerHTML = "";
                     clearInterval(interval);
@@ -842,7 +848,7 @@ function drawScene() {
         if(lightSources[i].isOff())
             continue;
 
-        if (difficulty && !superMode) {
+        if (difficulty) {
             lightSources[i].setPosition(pacman.x - (field.width / 2),  2.5, pacman.z - (field.height / 2), 1.0);
             lightSources[i].setAmbIntensity(0.0, 0.0, 0.0);
         }  
@@ -1052,8 +1058,11 @@ function setEventListeners(){
         
         var reader = new FileReader();
         
-        // Reste field structure
-        field_structure = [];
+        // New field structure
+        new_structure = [];
+
+        var error = false;
+        var movingSpaces = 0;
 
         reader.onload = function(progressEvent){
             
@@ -1066,11 +1075,29 @@ function setEventListeners(){
                 if (col.length == 1)
                     continue;
                 var line = [];
-                for (var j = 0; j < col.length; j++)
-                    line.push(col[j].trim());
-                field_structure.push(line);
+                for (var j = 0; j < col.length; j++) {
+                    type = col[j].trim();
+                    // Check if there is unknown blocks
+                    if (type != 'w' && type != 'f' && type != 's' && type != 'p') {
+                        error = true;
+                        break;
+                    } else if (type == 'f' || type == 's' || type == 'p')
+                        movingSpaces++;
+                    line.push(type);
+                }
+
+                new_structure.push(line);
                 line = [];
             }
+
+            // Check if there is unknown blocks or space to spawn
+            if (error || !movingSpaces) {
+                document.getElementById("field-error").innerHTML = "The field is not valid ! Please follow the structure described above and leave space (food or portals) to spawn the chars";
+                return;
+            }
+
+            // Copy new field to the used one
+            field_structure = new_structure;
             
             // Init field and game screen
             initField();
@@ -1090,6 +1117,7 @@ function setGameScreen() {
     // Set game difficulty (0 to normal, 1 to hard)
     difficulty = parseInt(document.getElementById("difficulty").value);
     gl.uniform1i(gl.getUniformLocation(shaderProgram, "difficulty"), difficulty);
+    gl.uniform1f(gl.getUniformLocation(shaderProgram, "threshold"), threshold);
 
     // Set game screen
     document.getElementById("welcome-screen").style.display = "none";
