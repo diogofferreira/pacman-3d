@@ -119,29 +119,29 @@ LightSource.prototype.setAmbIntensity = function( r, g, b ) {
     this.ambientIntensity[2] = b;
 }
 
-LightSource.prototype.isRotYYOn = function() {
+LightSource.prototype.isRotZZOn = function() {
     
-    return this.rotYYOn;
+    return this.rotZZOn;
 }
 
-LightSource.prototype.switchRotYYOn = function() {
+LightSource.prototype.switchRotZZOn = function() {
     
-    this.rotYYOn = true;
+    this.rotZZOn = true;
 }
 
-LightSource.prototype.switchRotYYOff = function() {
+LightSource.prototype.switchRotZZOff = function() {
     
-    this.rotYYOn = false;
+    this.rotZZOn = false;
 }
 
-LightSource.prototype.getRotAngleYY = function() {
+LightSource.prototype.getRotAngleZZ = function() {
     
-    return this.rotAngleYY;
+    return this.rotAngleZZ;
 }
 
-LightSource.prototype.setRotAngleYY = function( angle ) {
+LightSource.prototype.setRotAngleZZ = function( angle ) {
     
-    this.rotAngleYY = angle;
+    this.rotAngleZZ = angle;
 }
 
 LightSource.prototype.getRotationSpeed = function() {
@@ -163,22 +163,22 @@ var lightSources = [];
 
 // Yellow light (Sun)
 var sunLight = new LightSource();
-sunLight.setPosition( 0.0, 0.0, 1.0, 0.0 );
+sunLight.setPosition( 0.0, 5.0, 0.0, 0.0 );
 sunLight.setIntensity( 1.0, 1.0, 0.0 );
 sunLight.setAmbIntensity( 0.8, 0.8, 0.0 );
 lightSources.push(sunLight);
 
 // Super mode light (Blue)
 var superModeLightBlue = new LightSource();
-superModeLightBlue.setPosition( 0.0, 0.0, 5.0, 0.0 );
+superModeLightBlue.setPosition( 0.0, 5.0, 0.0, 0.0 );
 superModeLightBlue.setIntensity( 0.0, 0.0, 1.0 );
 superModeLightBlue.setAmbIntensity( 0.0, 0.0, 0.8 );
-superModeLightBlue.switchRotYYOn();
-superModeLightBlue.setRotationSpeed(5.0);
+superModeLightBlue.switchRotZZOn();
+superModeLightBlue.setRotationSpeed(4.0);
 
 // Super mode light (Red)
 var superModeLightRed = new LightSource();
-superModeLightRed.setPosition( 0.0, 0.0, 5.0, 0.0 );
+superModeLightRed.setPosition( 0.0, 5.0, 0.0, 0.0 );
 superModeLightRed.setIntensity( 1.0, 0.0, 0.0 );
 superModeLightRed.setAmbIntensity( 0.8, 0.0, 0.0 );
 
