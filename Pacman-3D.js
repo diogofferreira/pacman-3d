@@ -8,7 +8,7 @@ var cubeVertexNormalBuffer = null;
 
 // Global transformations parameters
 var globalTz = -28.0;
-var globalXX = 70.0;
+var globalXX = 60.0;
 var globalYY = 0.0;
 
 // Local transformation parameters
