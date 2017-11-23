@@ -731,7 +731,9 @@ function restartGame() {
     introSound.play();
 }
 
-function superModeEnabled() {
+function enableSuperMode() {
+
+    // Enable super mode timer
     interval = setInterval(function() {
         counter--;
         if (counter === 0) {
@@ -803,7 +805,7 @@ function movePacman() {
 
         // Only enable super mode if it isn't already enabled
         if (!superMode) {
-            // Switch threshold in shaders, in order to more field
+            // Switch threshold in shaders, in order to see more field
             gl.uniform1f(gl.getUniformLocation(shaderProgram, "threshold"), 1.5 * threshold);
             
             switchSuperModeLight(true);
@@ -811,13 +813,14 @@ function movePacman() {
             superModeSound.play();
 
             counter = 15;
-            superModeEnabled();
+            enableSuperMode();
         } else {
+            // Increment super mode timer counter
             counter += 15;
             clearInterval(interval);
             interval = null;
 
-            superModeEnabled();
+            enableSuperMode();
         }
 
         // Activate super mode
