@@ -731,6 +731,23 @@ function restartGame() {
     introSound.play();
 }
 
+function superModeEnabled() {
+    interval = setInterval(function() {
+        counter--;
+        if (counter === 0) {
+            superMode = false;
+            switchSuperModeLight(false);
+            // Set normal light threshold again
+            gl.uniform1f(gl.getUniformLocation(shaderProgram, "threshold"), threshold);
+
+            document.getElementById('super-mode').innerHTML = "";
+            clearInterval(interval);
+            return;
+        } else 
+            document.getElementById('super-mode').innerHTML = "SUPER MODE ending in " + counter + " seconds";
+    }, 1000);
+}
+
 function movePacman() {
 
     // Walk while not crashing
@@ -794,20 +811,13 @@ function movePacman() {
             superModeSound.play();
 
             counter = 15;
-            interval = setInterval(function() {
-                counter--;
-                if (counter === 0) {
-                    superMode = false;
-                    switchSuperModeLight(false);
-                    // Set normal light threshold again
-                    gl.uniform1f(gl.getUniformLocation(shaderProgram, "threshold"), threshold);
+            superModeEnabled();
+        } else {
+            counter += 15;
+            clearInterval(interval);
+            interval = null;
 
-                    document.getElementById('super-mode').innerHTML = "";
-                    clearInterval(interval);
-                    return;
-                } else 
-                    document.getElementById('super-mode').innerHTML = "SUPER MODE ending in " + counter + " seconds";
-            }, 1000);
+            superModeEnabled();
         }
 
         // Activate super mode
