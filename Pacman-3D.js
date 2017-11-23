@@ -1,56 +1,34 @@
-//----------------------------------------------------------------------------
-//
 // Global Variables
-//
-
-var gl = null; // WebGL context
-
+var gl = null;
 var shaderProgram = null;
-
 var cubeVertexPositionBuffer = null;
-    
 var cubeVertexColorBuffer = null;
-
 var cubeVertexIndexBuffer = null;
-
 var cubeVertexNormalBuffer = null;
 
-// Global transformations
+// Global transformations parameters
+var globalTz = -28.0;
+var globalXX = 70.0;
+var globalYY = 0.0;
 
-globalTz = -28.0;
+// Local transformation parameters
 
-globalXX = 70.0;
-
-globalYY = 0.0;
-
-// The local transformation parameters
-
-// The translation vector
-
+// Translation vector
 var tx = 0.0;
-
 var ty = 0.0;
-
 var tz = 0.0;
 
-// The rotation angles in degrees
-
+// Rotation angles in degrees
 var angleXX = 0.0;
-
 var angleYY = 0.0;
-
 var angleZZ = 0.0;
 
-// The scaling factors
-
+// Scaling factors
 var sx = 0.5;
-
 var sy = 0.5;
-
 var sz = 0.5;
 
-// For storing the vertices defining the vertices
-
+// Vertices defining the faces
 var vertices = [
     // Front face
     -1.0, -1.0,  1.0,
@@ -89,8 +67,7 @@ var vertices = [
     -1.0,  1.0, -1.0
 ];
 
-// Vertex indices defining the triangles
-        
+// Vertex indices defining the triangles 
 var cubeVertexIndices = [
 
     0, 1, 2,      0, 2, 3,    // Front face
@@ -107,7 +84,6 @@ var cubeVertexIndices = [
 ];
 
 // Texture coordinates for the quadrangular faces
-
 var textureCoords = [
 
     // Front face
@@ -148,43 +124,34 @@ var textureCoords = [
 ];
 
 // Vertex normals
-
 var normals = [
 
     0.0, 0.0, 1.0,   0.0, 0.0, 1.0,   0.0, 0.0, 1.0,   0.0, 0.0, 1.0,  //v0-v1-v2-v3 front
     1.0, 0.0, 0.0,   1.0, 0.0, 0.0,   1.0, 0.0, 0.0,   1.0, 0.0, 0.0,  //v0-v3-v4-v5 right
-    0.0, 1.0, 0.0,   0.0, 1.0, 0.0,   0.0, 1.0, 0.0,   0.0, 1.0, 0.0,  //v0-v5-v6-v1 up
+    0.0, 1.0, 0.0,   0.0, 1.0, 0.0,   0.0, 1.0, 0.0,   0.0, 1.0, 0.0,  //v0-v5-v6-v1 top
    -1.0, 0.0, 0.0,  -1.0, 0.0, 0.0,  -1.0, 0.0, 0.0,  -1.0, 0.0, 0.0,  //v1-v6-v7-v2 left
-    0.0,-1.0, 0.0,   0.0,-1.0, 0.0,   0.0,-1.0, 0.0,   0.0,-1.0, 0.0,  //v7-v4-v3-v2 down
+    0.0,-1.0, 0.0,   0.0,-1.0, 0.0,   0.0,-1.0, 0.0,   0.0,-1.0, 0.0,  //v7-v4-v3-v2 bottom
     0.0, 0.0,-1.0,   0.0, 0.0,-1.0,   0.0, 0.0,-1.0,   0.0, 0.0,-1.0   //v4-v7-v6-v5 back
 ];
 
-// The viewer position
-
-// It has to be updated according to the projection type
-
+// Viewer position
 var pos_Viewer = [ 0.0, 0.0, 0.0, 1.0 ];
 
 // Model Material Features
 
 // Ambient coef.
-
 var kAmbi = [0.8, 0.8, 0.8];
 
 // Diffuse coef.
-
 var kDiff = [0.8, 0.8, 0.8];
 
 // Specular coef.
-
 var kSpec = [0.7, 0.7, 0.7];
 
 // Phong coef.
-
 var nPhong = 100;
 
 // Sounds
-
 var introSound = new Audio('assets/intro.wav');
 var eatingSound = new Audio('assets/eating.wav');
 var eatGhostSound = new Audio('assets/eat-ghost.wav');
@@ -193,7 +160,6 @@ var winSound = new Audio('assets/win.wav');
 var superModeSound = new Audio('assets/super-mode.wav');
 
 // Textures
-
 var wallTexture;
 var foodTexture;
 var superFoodTexture;
@@ -202,16 +168,48 @@ var ghostTexture;
 
 //----------------------------------------------------------------------------
 //
-// The WebGL code
+//  Rendering and Texturing
 //
 
-//----------------------------------------------------------------------------
-//
-//  Rendering
-//
+function initCubeBuffer() {    
+    
+    // Coordinates
+        
+    cubeVertexPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    cubeVertexPositionBuffer.itemSize = 3;
+    cubeVertexPositionBuffer.numItems = vertices.length / 3;            
+
+    // Textures
+        
+    cubeVertexTextureCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
+     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+    cubeVertexTextureCoordBuffer.itemSize = 2;
+    cubeVertexTextureCoordBuffer.numItems = 24;                
+
+    // Vertex indices
+    
+    cubeVertexIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
+    cubeVertexIndexBuffer.itemSize = 1;
+    cubeVertexIndexBuffer.numItems = 36;
+
+    // Vertex Normal Vectors
+        
+    cubeVertexNormalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexNormalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+    cubeVertexNormalBuffer.itemSize = 3;
+    cubeVertexNormalBuffer.numItems = normals.length / 3;
+}
 
 function handleLoadedTexture(texture) {
     
+    // Bind textures
+
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
@@ -220,7 +218,7 @@ function handleLoadedTexture(texture) {
     gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
-function initTexture() {
+function initTextures() {
     
     // Wall texture
     wallTexture = gl.createTexture();
@@ -268,47 +266,10 @@ function initTexture() {
     ghostTexture.image.src = "assets/ghost.png";
 }
 
-
-// Handling the Vertex and the Color Buffers
-
-function initCubeBuffer() {    
-    
-    // Coordinates
-        
-    cubeVertexPositionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    cubeVertexPositionBuffer.itemSize = 3;
-    cubeVertexPositionBuffer.numItems = vertices.length / 3;            
-
-    // Textures
-        
-    cubeVertexTextureCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
-     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
-    cubeVertexTextureCoordBuffer.itemSize = 2;
-    cubeVertexTextureCoordBuffer.numItems = 24;                
-
-    // Vertex indices
-    
-    cubeVertexIndexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
-    cubeVertexIndexBuffer.itemSize = 1;
-    cubeVertexIndexBuffer.numItems = 36;
-
-    // Vertex Normal Vectors
-        
-    cubeVertexNormalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexNormalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
-    cubeVertexNormalBuffer.itemSize = 3;
-    cubeVertexNormalBuffer.numItems = normals.length / 3;
-}
-
 //----------------------------------------------------------------------------
-
-//  Drawing the model
+//
+//  Model Drawing
+//
 
 function drawModel( angleXX, angleYY, angleZZ, 
                     sx, sy, sz,
@@ -317,25 +278,20 @@ function drawModel( angleXX, angleYY, angleZZ,
                     texture) {
 
 
-    // Pay attention to transformation order !!
+    // Apply all transformations
     
-    mvMatrix = mult( mvMatrix, translationMatrix( tx, ty, tz ) );
-                         
-    mvMatrix = mult( mvMatrix, rotationZZMatrix( angleZZ ) );
-    
-    mvMatrix = mult( mvMatrix, rotationYYMatrix( angleYY ) );
-    
-    mvMatrix = mult( mvMatrix, rotationXXMatrix( angleXX ) );
-
-    mvMatrix = mult( mvMatrix, scalingMatrix( sx, sy, sz ) );
+    mvMatrix = mult(mvMatrix, translationMatrix( tx, ty, tz ));         
+    mvMatrix = mult(mvMatrix, rotationZZMatrix(angleZZ));
+    mvMatrix = mult(mvMatrix, rotationYYMatrix(angleYY));
+    mvMatrix = mult(mvMatrix, rotationXXMatrix(angleXX));
+    mvMatrix = mult(mvMatrix, scalingMatrix(sx, sy, sz));
                          
     // Passing the Model View Matrix to apply the current transformation
     
     var mvUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
-    
     gl.uniformMatrix4fv(mvUniform, false, new Float32Array(flatten(mvMatrix)));
     
-    // Passing the buffers
+    // Passing the buffers (vertices, textures and normals)
         
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
     gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -349,11 +305,8 @@ function drawModel( angleXX, angleYY, angleZZ,
     // Material properties
     
     gl.uniform3fv(gl.getUniformLocation(shaderProgram, "k_ambient"), flatten(kAmbi));
-    
     gl.uniform3fv(gl.getUniformLocation(shaderProgram, "k_diffuse"), flatten(kDiff));
-    
     gl.uniform3fv(gl.getUniformLocation(shaderProgram, "k_specular"), flatten(kSpec));
-
     gl.uniform1f(gl.getUniformLocation(shaderProgram, "shininess"), nPhong);
 
     // Light Sources
@@ -363,25 +316,130 @@ function drawModel( angleXX, angleYY, angleZZ,
     for(var i = 0; i < lightSources.length ; i++ )
     {
         gl.uniform4fv(gl.getUniformLocation(shaderProgram, "allLights[" + String(i) + "].position"), flatten(lightSources[i].getPosition()));
-    
         gl.uniform3fv(gl.getUniformLocation(shaderProgram, "allLights[" + String(i) + "].intensities"), flatten(lightSources[i].getIntensity()));
     }
 
+    // Apply textures 
+
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
-
     gl.uniform1i(shaderProgram.samplerUniform, 0);
 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+    // Bind vertices and draw the contents of the vertex buffer
 
-    // Drawing the contents of the vertex buffer
-    
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);    
     gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);    
 }
 
-//----------------------------------------------------------------------------
+function drawScene() {
+    
+    var mvMatrix = mat4();
 
+    // Clear color buffer
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    
+    // Compute the perspective matrix
+    var pMatrix = perspective( 45, 1, 0.05, 50 );
+
+    // The viewer is on (0,0,0)
+    pos_Viewer[0] = pos_Viewer[1] = pos_Viewer[2] = 0.0;    
+    pos_Viewer[3] = 1.0;  
+    
+    // Passing the Projection Matrix to apply the current projection
+    var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+    
+    gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
+
+    // Passing the viewer position to the vertex shader
+    gl.uniform4fv( gl.getUniformLocation(shaderProgram, "viewerPosition"), flatten(pos_Viewer));
+
+    // Global transformations
+    mvMatrix = translationMatrix( 0, 0, globalTz );
+    mvMatrix = mult( mvMatrix, rotationYYMatrix( globalYY ) );
+    mvMatrix = mult( mvMatrix, rotationXXMatrix( globalXX ) );
+    
+    // Updating the position of the light sources, if required
+    for(var i = 0; i < lightSources.length; i++)
+    {
+        if(lightSources[i].isOff())
+            continue;
+
+        // Adjust light position based on pacman position, in hard mode
+        if (difficulty)
+            lightSources[i].setPosition(pacman.x - (field.width / 2),  2.5, pacman.z - (field.height / 2), 1.0);
+        
+        // Animating the light source, if defined
+        var lightSourceMatrix = mvMatrix;    
+        if(lightSources[i].isRotZZOn()) 
+            lightSourceMatrix = mult(lightSourceMatrix, rotationZZMatrix(lightSources[i].getRotAngleZZ()));
+
+        // Passing the Light Source Matrix to apply
+        var lsmUniform = gl.getUniformLocation(shaderProgram, "allLights["+ String(i) + "].lightSourceMatrix");
+        gl.uniformMatrix4fv(lsmUniform, false, new Float32Array(flatten(lightSourceMatrix)));
+    }
+
+    // Draw models
+
+    drawField(mvMatrix);
+
+    drawChar(pacman, mvMatrix);
+
+    for(var i = 0; i < ghosts.length; i++)
+        drawChar(ghosts[i], mvMatrix);
+
+    // Update page's score
+    if (!gameOver)
+        document.getElementById('score').innerHTML = "Score : " + score;
+}
+
+function drawChar(character, mvMatrix) {
+    
+    // Verify if it is the pacman, to draw the correct texture
+    var texture = character.id == 'Pac' ? pacmanTexture : ghostTexture;
+
+    // Instantiating the current model
+    drawModel( angleXX, angleYY, angleZZ, 
+               sx, sy, sz,
+               character.x - (field.width / 2), ty, character.z - (field.height / 2),
+               mvMatrix,
+               texture);
+}
+
+function drawField(mvMatrix) {
+    
+    // Draw all field models, based on block type 
+
+    for (var i = 0; i < field.height; i++) {
+        for (var j = 0; j < field.width; j++) {
+            if (field.structure[i][j].type == 'w') {
+                drawModel( angleXX, angleYY, angleZZ, 
+                           sx, sy, sz,
+                           (j * field.xBlockSize) - tx, 0, (i * field.xBlockSize * field.zBlockSize) - tz,
+                           mvMatrix,
+                           wallTexture);
+            } else if (field.structure[i][j].type == 'f') {
+                scale = 0.4;
+                drawModel( angleXX, angleYY, angleZZ, 
+                           sx - scale, sy - scale, sz - scale,
+                           (j * field.xBlockSize) - tx, 0, (i * field.xBlockSize * field.zBlockSize) - tz,
+                           mvMatrix,
+                           foodTexture);
+            } else if (field.structure[i][j].type == 's') {
+                scale = 0.3;
+                drawModel( angleXX, angleYY, angleZZ, 
+                           sx - scale, sy - scale, sz - scale,
+                           (j * field.xBlockSize) - tx, 0, (i * field.xBlockSize * field.zBlockSize) - tz,
+                           mvMatrix,
+                           superFoodTexture);
+            }
+        }    
+    }
+}
+
+//----------------------------------------------------------------------------
+//
 // Field Handling
+//
 
 // w -> wall; f -> food; s -> super-food; p -> portal
 var w = 'w';
@@ -423,12 +481,12 @@ var possibleMoves = [
 ];
 
 var field = {
-    structure:     [],
-    height:     0,    
-    width:         0,
+    structure: [],
+    height: 0,    
+    width: 0,
     xBlockSize: 1.0,
     zBlockSize: 1.0,
-    speed:      0.1,
+    speed: 0.1,
     init: function(structure, height, width) {
         this.structure = structure;
         this.height = height;
@@ -436,60 +494,76 @@ var field = {
     }
 }
 
+// Game flags and values
 var started = false;
 var score = 0;
 var gameOver = false;
 var gameWin = false;
 var superMode = false;
+var interval = null;
 var remainingFood = 0;
 var difficulty = 0;
-// Light threshold in hard mode
-var threshold = 4.0;
 var portals = [];
 
+// Light threshold in hard mode
+var threshold = 4.0;
+
+// Chars objects
 var pacman;
 var ghosts = [];
 
-var interval;
 
 function fieldBlock(type, xPos, yPos, zPos) {
+    // Block type
     this.type = type;
+    // Block coordinates
     this.x = xPos;
     this.y = yPos;
     this.z = zPos;
-    this.moves = [];           // Possible moves on that block
+    // Possible moves on that block
+    this.moves = [];
 }
 
 function character(id) {
+    // Char coordinates
     this.x = 0.0;
     this.z = 0.0;
+    // Char direction
     this.xDirection = 0.0;
     this.zDirection = 0.0;
-    this.nextDirection = {};
     this.key = -1.0;
-    this.currentBlock = {};    // Reference to the current block
-    this.id = id;            // Character identificator
+    // Next direction to take, when possible
+    this.nextDirection = {};
+    // Reference to the current block
+    this.currentBlock = {};
+    // Char identificator  
+    this.id = id;
+    // Teleportation indicator
     this.teleportation = false;
 
-    // Initialize parameters for character
     this.init = function(x, z) {
         
+        // Find the structure matrix indexes
         var i = parseInt(x + (field.width / 2));
         var j = parseInt(z + (field.height / 2));
 
+        // Initialize char position and block
         this.x = field.structure[j][i].x;
         this.z = field.structure[j][i].z;
-
         this.currentBlock = field.structure[j][i];
     };
 
     this.updateDirection = function(moveX, moveZ, key) {
+
+        // Schedule next direction
         this.nextDirection['x'] = moveX;
         this.nextDirection['z'] = moveZ;
         this.nextDirection['key'] = key;
     };
 
     this.updatePosition = function() {
+
+        // Update the current block, based on the direction taken
         this.currentBlock = field.structure[this.currentBlock.z + this.zDirection][this.currentBlock.x + this.xDirection];
     };
 }
@@ -497,6 +571,7 @@ function character(id) {
 function randomCoordinates() {
     var x, z;
 
+    // Find coordinates of a random possible block (food, super-food or portal)
     do {
         x = Math.floor(Math.random() * field.width);
         z = Math.floor(Math.random() * field.height);
@@ -510,6 +585,7 @@ function initField() {
     // Clear portals array
     portals = [];
 
+    // Compute structure
     var createdField = createFieldStructure(field_structure);
     var height = createdField.length;
     var width = createdField[0].length;
@@ -518,12 +594,13 @@ function initField() {
     tx = width / 2;
     tz = height / 2;
 
+    // Initi field atributes
     field.init(createdField, height, width);
     
     // Compute all possible movements
     computeAllMoves(field_structure, field.structure);
 
-    // Create pacman and render him in a random 
+    // Create pacman and render it in a random position
     var pacCoords = randomCoordinates();
     pacman = new character('Pac');
     pacman.init(pacCoords['x'], pacCoords['z']);
@@ -537,6 +614,7 @@ function initField() {
     ghosts.push(new character('G2'));
     ghosts.push(new character('G3'));
 
+    // Render all ghosts in a random position
     for (var i=0; i<ghosts.length; i++){
         var coordinates = randomCoordinates();
         ghosts[i].init(coordinates['x'], coordinates['z']);
@@ -549,13 +627,15 @@ function createFieldStructure(structure){
     var newField = [];
     var line = [];
 
+    // Create field structure
     for (var i = 0; i < height; i++) {                
         for (var j = 0; j < width; j++) {
             line.push(new fieldBlock(structure[i][j], j, 0, i));
-            // Count food present on field
             if (structure[i][j] == 'f' || structure[i][j] == 's')
+                // Count food present on field
                 remainingFood++;
             else if (structure[i][j] == 'p')
+                // Save the portal in the portals array
                 portals.push(line[j]);
         }
         newField.push(line);
@@ -568,6 +648,7 @@ function computeAllMoves(structure, field) {
     var width = structure[0].length;
     var height = structure.length;
 
+    // Find possible moves, based on blocks neighbours
     for (var i = 0; i < height; i++) {                
         for (var j = 0; j < width; j++) {
             // Up block
@@ -620,6 +701,7 @@ function endGame(won, sound) {
     document.getElementById('score').innerHTML = "";
     document.getElementById("restart").style.display = "block";
 
+    // Play death or winning sound
     sound.play();
 }
 
@@ -645,6 +727,7 @@ function restartGame() {
     // Start game rendering
     initField();
 
+    // Play intro sound
     introSound.play();
 }
 
@@ -657,7 +740,7 @@ function movePacman() {
     }
 
     // Update current position, if possible
-    if (parseFloat(pacman.x.toFixed(2)) % 1.0 == 0 && parseFloat(pacman.z.toFixed(2)) % 1.0 == 0) {
+    if (parseFloat(pacman.x.toFixed(2)) % field.xBlockSize == 0 && parseFloat(pacman.z.toFixed(2)) % field.zBlockSize == 0) {
         
         // Only update the position if it is a valid move
         if (pacman.currentBlock.moves[pacman.key] != undefined)
@@ -758,7 +841,7 @@ function moveGhost(ghost) {
     }
 
     // Update current position, if possible
-    if (parseFloat(ghost.x.toFixed(2)) % 1.0 == 0 && parseFloat(ghost.z.toFixed(2)) % 1.0 == 0) {
+    if (parseFloat(ghost.x.toFixed(2)) % field.xBlockSize == 0 && parseFloat(ghost.z.toFixed(2)) % field.zBlockSize == 0) {
         
         // Only update the position if it is a valid move
         if (ghost.currentBlock.moves[ghost.key] != undefined)
@@ -785,6 +868,7 @@ function moveGhost(ghost) {
 function spawnInRandomPortal(character) {
     var nextPortal = null;
 
+    // Find a new random portal to spawn, different from the current one
     do {
         nextPortal = portals[Math.floor(Math.random() * portals.length)];
     } while(nextPortal == character.currentBlock)
@@ -811,115 +895,6 @@ function spawnInRandomPortal(character) {
     character.teleportation = true;
 }
 
-//----------------------------------------------------------------------------
-
-//  Drawing the 3D scene
-
-function drawScene() {
-    
-    var mvMatrix = mat4();
-
-    // Clear color buffer
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    
-    // Computing the perspective matrix
-    var pMatrix = perspective( 45, 1, 0.05, 50 );
-
-    // The viewer is on (0,0,0)
-    pos_Viewer[0] = pos_Viewer[1] = pos_Viewer[2] = 0.0;    
-    pos_Viewer[3] = 1.0;  
-    
-    // Passing the Projection Matrix to apply the current projection
-    var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-    
-    gl.uniformMatrix4fv(pUniform, false, new Float32Array(flatten(pMatrix)));
-
-    // Passing the viewer position to the vertex shader
-    gl.uniform4fv( gl.getUniformLocation(shaderProgram, "viewerPosition"), flatten(pos_Viewer));
-
-    // Global transformations
-    mvMatrix = translationMatrix( 0, 0, globalTz );
-    mvMatrix = mult( mvMatrix, rotationYYMatrix( globalYY ) );
-    mvMatrix = mult( mvMatrix, rotationXXMatrix( globalXX ) );
-    
-    // Updating the position of the light sources, if required
-    for(var i = 0; i < lightSources.length; i++)
-    {
-        if(lightSources[i].isOff())
-            continue;
-
-        if (difficulty) {
-            lightSources[i].setPosition(pacman.x - (field.width / 2),  2.5, pacman.z - (field.height / 2), 1.0);
-            lightSources[i].setAmbIntensity(0.0, 0.0, 0.0);
-        }  
-        
-        // Animating the light source, if defined
-        var lightSourceMatrix = mvMatrix;
-                        
-        if(lightSources[i].isRotZZOn()) 
-            lightSourceMatrix = mult(lightSourceMatrix, rotationZZMatrix(lightSources[i].getRotAngleZZ()));
-
-        // Passing the Light Source Matrix to apply
-        var lsmUniform = gl.getUniformLocation(shaderProgram, "allLights["+ String(i) + "].lightSourceMatrix");
-        gl.uniformMatrix4fv(lsmUniform, false, new Float32Array(flatten(lightSourceMatrix)));
-    }
-
-    // Draw models
-    drawField(mvMatrix);
-
-    drawChar(pacman, mvMatrix);
-
-    for(var i = 0; i < ghosts.length; i++)
-        drawChar(ghosts[i], mvMatrix);
-
-    // Update page's score
-    if (!gameOver)
-        document.getElementById('score').innerHTML = "Score : " + score;
-}
-
-function drawChar(character, mvMatrix) {
-    
-    // Verify if it is the pacman, to draw the correct texture
-    var texture = character.id == 'Pac' ? pacmanTexture : ghostTexture;
-
-    // Instantianting the current model
-    drawModel( angleXX, angleYY, angleZZ, 
-               sx, sy, sz,
-               character.x - (field.width / 2), ty, character.z - (field.height / 2),
-               mvMatrix,
-               texture);
-}
-
-function drawField(mvMatrix) {
-    // Draw all field models
-    for (var i = 0; i < field.height; i++) {
-        for (var j = 0; j < field.width; j++) {
-            if (field.structure[i][j].type == 'w') {
-                drawModel( angleXX, angleYY, angleZZ, 
-                           sx, sy, sz,
-                           (j * field.xBlockSize) - tx, 0, (i * field.xBlockSize * field.zBlockSize) - tz,
-                           mvMatrix,
-                           wallTexture);
-            } else if (field.structure[i][j].type == 'f') {
-                scale = 0.4;
-                drawModel( angleXX, angleYY, angleZZ, 
-                           sx - scale, sy - scale, sz - scale,
-                           (j * field.xBlockSize) - tx, 0, (i * field.xBlockSize * field.zBlockSize) - tz,
-                           mvMatrix,
-                           foodTexture);
-            } else if (field.structure[i][j].type == 's') {
-                scale = 0.3;
-                drawModel( angleXX, angleYY, angleZZ, 
-                           sx - scale, sy - scale, sz - scale,
-                           (j * field.xBlockSize) - tx, 0, (i * field.xBlockSize * field.zBlockSize) - tz,
-                           mvMatrix,
-                           superFoodTexture);
-            }
-        }    
-    }
-}
-
-// Animation --- Updating transformation parameters
 
 var lastTime = 0;
 
@@ -927,12 +902,10 @@ function animate() {
     
     var timeNow = new Date().getTime();
     
-    if( lastTime != 0 ) {
-        
+    if(lastTime != 0) {
         var elapsed = timeNow - lastTime;
         
-        // Rotating the light sources
-    
+        // Rotate the light sources
         for(var i = 0; i < lightSources.length; i++ )
         {
             if( lightSources[i].isRotZZOn() ) {
@@ -945,27 +918,27 @@ function animate() {
     lastTime = timeNow;
 }
 
-// Timer
-
 function tick() {
 
     requestAnimFrame(tick);
     
+    // Compute new pacman move
     movePacman();
-
+    
+    // Compute new ghost move
     for(var i = 0; i < ghosts.length; i++)
         moveGhost(ghosts[i]);
 
     // Render the viewport
     drawScene();
 
+    // Animate models
     animate();
 }
 
 //----------------------------------------------------------------------------
 
 function setEventListeners(){
-
     var moving = false;
     var xPos = 0;
     var yPos = 0;
@@ -979,8 +952,8 @@ function setEventListeners(){
 
     document.addEventListener('mousemove', function(event){ 
         if(moving){
-            globalYY += (xPos - event.pageX) * 0.05;
-            globalXX += (yPos - event.pageY) * 0.05;
+            globalYY += (xPos - event.pageX) * 0.01;
+            globalXX += (yPos - event.pageY) * 0.01;
             drawScene(); 
         }
     });
@@ -1109,7 +1082,6 @@ function setEventListeners(){
     }
 }
 
-// Enable game div
 function setGameScreen() {
     // Game is running
     started = true;
@@ -1126,8 +1098,10 @@ function setGameScreen() {
     // Start game rendering
     initField();
 
+    // Play intro sound
     introSound.play();
     
+    // Start models animation and movements 
     tick();   
 }
 
@@ -1136,46 +1110,38 @@ function setGameScreen() {
 // WebGL Initialization
 //
 
-function initWebGL( canvas ) {
+function initWebGL(canvas) {
     try {
-        
-        // Create the WebGL context
-                
+
+        // Create the WebGL context       
         gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
         
         // Viewport with black background
-        
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
         // Enable face culling and depth test
-        
         gl.enable( gl.CULL_FACE );
         gl.enable( gl.DEPTH_TEST );
-
-        // Drawing the triangles defining the model
-        
-        primitiveType = gl.TRIANGLES;
-            
     } catch (e) {
     }
+
     if (!gl) {
         alert("Could not initialise WebGL, sorry! :-(");
     }        
 }
 
-//----------------------------------------------------------------------------
-
 function runWebGL() {
     
     var canvas = document.getElementById("my-canvas");
     
+    // Init WebGL and shaders
     initWebGL( canvas );
-
     shaderProgram = initShaders( gl );
     
+    // Enable event listeners
     setEventListeners();
 
+    // Init buffers and textures
     initCubeBuffer();
-
-    initTexture();
+    initTextures();
 }

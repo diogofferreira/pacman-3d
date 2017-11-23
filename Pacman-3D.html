@@ -4,7 +4,7 @@
 
 <head>
     
-<title>Pacman 3D by Apollo</title>
+<title>Pacman 3D</title>
 
 <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
 
@@ -28,7 +28,7 @@
     
     uniform vec4 viewerPosition;
     
-    // NEW - Array of lights
+    // Array of lights
     
     #define MAX_LIGHTS 5
 
@@ -69,7 +69,7 @@
         
         gl_PointSize = 5.0;
         
-        // Just converting the (x,y,z) vertices to Homogeneous Coord.
+        // Converting the (x,y,z) vertices to Homogeneous Coord.
         
         // And multiplying by the Projection and the Model-View matrix
         
@@ -189,14 +189,12 @@
 
     void main(void) {
         
-        // Using the passed vertex color (color * texture)
-        
+        // Using the passed vertex color * texture
+
         gl_FragColor = fColor * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
     }
 
 </script>
-
-<!-- The JS files -->
 
 <!-- Some useful functions for browser compatibility -->
 
@@ -223,16 +221,18 @@
 </head>
 
 <body onload="runWebGL();" style="background: black; width:100%; height:100%">
-    
+    <!-- Pacman logo -->
     <div align="center" style="height:10%;">
         <img src="assets/logo.gif" style="height:100%;"/>
     </div>
-    <div align="center" id="welcome-screen" style="display:block;color:white; width:80%; height:80%; border-style: solid; border-width:5px; border-radius: 5%; margin:0 auto;">
+
+    <!-- Intro page -->
+    <div align="center" id="welcome-screen" style="display:block;color:white; width:80%; height:80%; border-style: solid; border-width:5%; border-radius: 30%; margin:0 auto;">
         <br/>
-        <span style="font-size:120%;">
+        <span style="font-size:100%;">
             <u>INSTRUCTIONS</u>: 
             <br/>
-            <br/>1. USE THE ARROWS TO MOVE THE PACMAN
+            <br/>1. USE THE ARROWS TO MOVE PACMAN
             <br/>
             <br/>2. USE MOUSE DRAG OR W,A,S,D KEYS TO CHANGE CAMERA POSITION
             <br/>
@@ -261,6 +261,7 @@
         <span style="font-size:25px;color:yellow;">PRESS SPACE TO START!</span>
     </div>
 
+    <!-- Game page -->
     <div id="game" align="center" style="display:none; width:100%; height:90%;">
         <canvas id="my-canvas" width="900" height="700" style="border:none; width:auto; height:80%;"></canvas>        
 
@@ -269,6 +270,6 @@
         <h1 id="result" style="color:yellow;width:auto;height:5%;font-size:100%;"></h2>
         <button id="restart" type="button" onclick="restartGame()" style="display:none;height:5%;font-size:100%;">Restart Game</button>
     </div>
-</body>
 
+</body>
 </html>
