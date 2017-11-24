@@ -511,6 +511,7 @@ var threshold = 4.0;
 // Chars objects
 var pacman;
 var ghosts = [];
+var deadGhosts = [];
 
 
 function fieldBlock(type, xPos, yPos, zPos) {
@@ -575,7 +576,7 @@ function randomCoordinates() {
     do {
         x = Math.floor(Math.random() * field.width);
         z = Math.floor(Math.random() * field.height);
-    } while(field.structure[z][x].type == 'w')
+    } while(field.structure[z][x].type == 'w');
 
     return {'x': x - (field.width / 2), 'z': z - (field.height / 2)}
 }
@@ -609,10 +610,12 @@ function initField() {
 
     // Clear ghosts array
     ghosts = [];
+    deadGhosts = [];
     // Create ghosts and render them in a random position
     ghosts.push(new character('G1'));
     ghosts.push(new character('G2'));
     ghosts.push(new character('G3'));
+    ghosts.push(new character('G4'));
 
     // Render all ghosts in a random position
     for (var i=0; i<ghosts.length; i++){
@@ -731,7 +734,7 @@ function restartGame() {
     introSound.play();
 }
 
-function enableSuperMode() {
+function enableSuperModeEnv() {
 
     // Enable super mode timer
     interval = setInterval(function() {
@@ -741,6 +744,12 @@ function enableSuperMode() {
             switchSuperModeLight(false);
             // Set normal light threshold again
             gl.uniform1f(gl.getUniformLocation(shaderProgram, "threshold"), threshold);
+
+            // Respawn dead ghosts
+            for (var i=0; i < deadGhosts.length; i++)
+                ghosts.push(deadGhosts[i]);
+
+            deadGhosts = [];
 
             document.getElementById('super-mode').innerHTML = "";
             clearInterval(interval);
@@ -812,15 +821,15 @@ function movePacman() {
 
             superModeSound.play();
 
-            counter = 15;
-            enableSuperMode();
+            counter = 12;
+            enableSuperModeEnv();
         } else {
             // Increment super mode timer counter
-            counter += 15;
+            counter += 12;
             clearInterval(interval);
             interval = null;
 
-            enableSuperMode();
+            enableSuperModeEnv();
         }
 
         // Activate super mode
@@ -848,6 +857,14 @@ function moveGhost(ghost) {
             ghosts.splice(idx, 1);
             score += 100;
             eatGhostSound.play();
+
+            // Add ghost to dead ghost array to later respawn
+            var id = ghost.id;
+            ghost = new character(id);
+            var coordinates = randomCoordinates();
+            ghost.init(coordinates['x'], coordinates['z']);
+            deadGhosts.push(ghost);
+
         } else if (!gameWin && !gameOver)
             // Lost game
             endGame(false, deathSound);
@@ -965,8 +982,8 @@ function setEventListeners(){
 
     document.addEventListener('mousemove', function(event){ 
         if(moving){
-            globalYY += (xPos - event.pageX) * 0.01;
-            globalXX += (yPos - event.pageY) * 0.01;
+            globalYY -= (xPos - event.pageX) * 0.01;
+            globalXX -= (yPos - event.pageY) * 0.01;
             drawScene(); 
         }
     });
